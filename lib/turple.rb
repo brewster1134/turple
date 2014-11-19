@@ -1,8 +1,11 @@
 require 'active_support/core_ext/hash/reverse_merge'
+require 'find'
+require 'pathname'
 require 'recursive-open-struct'
+require 'tmpdir'
 
 class Turple
-  attr_reader :output
+  attr_reader :data, :destination, :output
 
   # Allows Turple.ate vs Turple.new
   class << self
@@ -11,14 +14,13 @@ class Turple
 
 private
 
-    def initialize object, data, options = {}
-      @old_paths = []
-      @object = object
-      @type = get_object_type @object
-      @data = process_data data
+    def initialize object, destination, data, options = {}
       @options = options.reverse_merge({
+        # name of the folder to put processed files into in the tmp dir
+        processed_tmp_dir: 'TURPLEated',
+
         # default file extension of files to interpolate content
-        file_ext: '.turple',
+        file_ext_regex: /\.turple$/,
 
         # default regex for path interpolation
         # matches capital underscored data keys ie [FOO.BAR]
@@ -29,11 +31,31 @@ private
         content_regex: /<>([a-z_.]+)<>/
       })
 
+      @object = object
+      @tmp_dir = Dir.mktmpdir
+      @tmp_processed_dir = File.join(@tmp_dir, @options[:processed_tmp_dir])
+      copy_to_tmp @object, @tmp_dir
+
+      @type = get_type @object
+      @destination = get_destination destination
+      @data = get_data data
+
       interpolate @type
+      copy_to_destination @destination
     end
 
+    # If object is a file system resource (not a string), copy it to a tmp dir for processing
+    #
+    def copy_to_tmp object, tmp_dir
+      if File.exists? object
+        # Copy object to temp file
+        FileUtils.cp_r object, tmp_dir
+      end
+    end
 
-    def get_object_type object
+    # Determine the type of data to process
+    #
+    def get_type object
       case
       when File.directory?(object)
         :dir
@@ -44,50 +66,82 @@ private
       end
     end
 
-    def interpolate type
-      @output = case type
-      when :dir
-        process_paths
-        process_files
-        @object
-      when :file
-        process_files
-        @object
-      when :string
-        process_string @object
+    # Get the destination path for where processed data will be copied to
+    #
+    def get_destination destination
+      case destination
+      when :cwd, :here, :pwd
+        Dir.pwd
+      when String
+        File.expand_path destination
+      else
+        nil
       end
-
-      cleanup_old_paths
     end
 
     # Convert options to OpenStruct so we can use dot notation in the templates
     #
-    def process_data data
+    def get_data data
       RecursiveOpenStruct.new(data)
     end
 
-    # Allow templates to call option values directly
+    # Allow templates to call option values directly using the open struct api
     #
     def method_missing method
       @data.send(method.to_sym) || super
     end
 
+    # handle the process of the object
+    #
+    def interpolate type
+      case type
+      when :dir
+        process_paths
+        process_files
+      when :file
+        process_paths
+        process_files
+      when :string
+        process_string @object
+      end
+    end
+
+    def copy_to_destination destination
+      if destination
+        # if processing a string and a destination exists, create and write the output the file
+        if @type == :string
+          File.open destination, 'w' do |f|
+            f.write @output
+          end
+
+        # otherwise we assume its a file or directory that we copy from the tmp dir
+        else
+          # get first entry (should only ever be one anyway) form the processed folder in the tmp dir
+          processed_dir = Dir.glob(File.join(@tmp_processed_dir, "**")).first
+
+          # Copy to destination
+          FileUtils.cp_r processed_dir, destination
+        end
+      end
+    end
+
     # Collect files with a matching value to interpolate
     #
     def process_paths
-      Dir.glob(File.join(@object, '**/*')).select do |path|
-        File.file?(path) && path =~ @options[:path_regex]
-      end.each { |path| process_path path }
+      Find.find @tmp_dir do |path|
+        # dont process tmp dir
+        next if path == @tmp_dir
+
+        # process files that match interpolation syntax
+        if File.file?(path) && path =~ @options[:path_regex]
+          process_path path
+        end
+      end
     end
 
     # Interpolate filenames with template options
     #
     def process_path file_path
-      return unless File.exist? file_path
-
-      # add to old_paths array to delete later
-      @old_paths << File.dirname(file_path)
-
       new_file_path = file_path.gsub @options[:path_regex] do
         # Extract interpolated values into symbols
         methods = $1.downcase.split('.').map(&:to_sym)
@@ -96,17 +150,29 @@ private
         methods.inject(@data){ |options, method| options.send(method.to_sym) }
       end
 
-      # make sure new path exists and move file to it
-      newDir = File.dirname new_file_path
-      FileUtils.mkdir_p newDir
-      FileUtils.mv file_path, new_file_path
+      # modify the path to point to the processed sub directory
+      new_file_path.gsub! @tmp_dir, @tmp_processed_dir
+
+      # create and copy the process file path to the new tmp dir
+      if File.directory? file_path
+        FileUtils.mkdir_p new_file_path
+      elsif File.file? file_path
+        FileUtils.mkdir_p File.dirname(new_file_path)
+      end
+
+      FileUtils.cp file_path, new_file_path
     end
 
     # Collect files with an .erb extension to interpolate
     #
     def process_files
-      Dir.glob(File.join(@object, "**/*#{@options[:file_ext]}"), File::FNM_DOTMATCH).each do |file|
-        process_file file
+      Find.find @tmp_processed_dir do |path|
+        # dont process tmp dir
+        next if path == @tmp_processed_dir
+
+        if File.file?(path) && path =~ @options[:file_ext_regex]
+          process_file path
+        end
       end
     end
 
@@ -122,7 +188,7 @@ private
       end
 
       # Remove the .erb from the file name
-      FileUtils.mv file, file.chomp(@options[:file_ext])
+      FileUtils.mv file, file.sub(@options[:file_ext_regex], '')
     end
 
     def process_string string
@@ -133,11 +199,10 @@ private
         # Call each method on options
         methods.inject(@data){ |options, method| options.send(method.to_sym) }
       end
-    end
 
-    def cleanup_old_paths
-      @old_paths.uniq.each do |path|
-        FileUtils.rm_f path
-      end
+      # if string is not getting saved to a file, assign it to the output var
+      @output = string if @type == :string
+
+      return string
     end
 end
