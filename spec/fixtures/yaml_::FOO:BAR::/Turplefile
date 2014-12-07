@@ -1,0 +1,6 @@
+config:
+  file_ext_regex: '/\.turpleyaml$/'
+  path_regex: '/::([A-Z_:]+)::/'
+  path_separator: :
+  content_regex: '/>>([a-z_^]+)<</'
+  content_separator: ^
