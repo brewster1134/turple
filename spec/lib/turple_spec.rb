@@ -3,15 +3,15 @@ describe Turple do
     it 'should handle yaml format' do
       Turple.load_turplefile File.join(ROOT_DIR, 'spec', 'fixtures', 'Turplefile.yaml')
 
-      expect(Turple.turplefile[:data][:foo][:bar]).to eq 'yaml'
-      expect(Turple.turplefile[:template]).to eq File.join(ROOT_DIR, 'spec', 'fixtures', 'yaml_//FOO/BAR//')
+      expect(Turple.data[:foo][:bar]).to eq 'yaml'
+      expect(Turple.template).to eq 'yaml_//FOO/BAR//'
     end
 
     it 'should handle json format' do
       Turple.load_turplefile File.join(ROOT_DIR, 'spec', 'fixtures', 'Turplefile.json')
 
-      expect(Turple.turplefile[:data][:foo][:bar]).to eq 'json'
-      expect(Turple.turplefile[:template]).to eq File.join(ROOT_DIR, 'spec', 'fixtures', 'json_""FOO"BAR""')
+      expect(Turple.data[:foo][:bar]).to eq 'json'
+      expect(Turple.template).to eq 'json_""FOO"BAR""'
     end
   end
 

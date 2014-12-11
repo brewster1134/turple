@@ -1,31 +1,91 @@
-class Turple; end
+require 'active_support/core_ext/hash/keys'
+require 'cli_miami'
+require 'json'
+require 'yaml'
 
-# classes
-require 'turple/cli'
+# Create CLI Miami presets
+S.set_preset :error, {
+  :color => :red,
+  :style => :bold
+}
 
 class Turple
+  # classes
+  require 'turple/cli'
+  require 'turple/template'
+
+  DEFAULT_CONFIGURATION = {
+    # default regex for file names to interpolate content of
+    # matches files with an extension of `.turple`
+    # (e.g. foo.txt.turple)
+    :file_ext_regex => /\.turple$/,
+
+    # default regex for path interpolation
+    # matches capitalized, dot-notated keys surrounded with single brackets
+    # (e.g. [FOO.BAR])
+    :path_regex => /\[([A-Z_.]+)\]/,
+
+    # default regex for content interpolation
+    # matches lowercase, dot-notated keys surrounded with `<>`
+    # (e.g. [FOO.BAR])
+    :content_regex => /<>([a-z_.]+)<>/
+  }
+
+  @@turplefile = {}
+
+  # Class methods
   class << self
     # Allows Turple.ate vs Turple.new
     alias_method :ate, :new
 
-    def configuration
-      @@configuration
+    # Get data from loaded turplefiles
+    # @return [Hash]
+    def data; @@turplefile[:data] ; end
+
+    # Get template path from loaded turplefiles
+    # @return [String]
+    def template; @@turplefile[:template] ; end
+
+    # Get configuration from loaded turplefiles
+    # @return [Hash]
+    def configuration; @@turplefile[:configuration] ; end
+
+    # Read file contents, attempt to convert contents to a ruby hash, and call setter to merge hash into the turplefile
+    # Supported File Types:
+    #   json
+    #   yaml
+    #
+    # @param file [String] relative/absolute path to a supported file
+    # @return [Hash]
+    def load_turplefile file
+      file_contents = File.read(File.expand_path(file))
+
+      # check for json
+      begin
+        json_contents = JSON.load file_contents
+        return self.turplefile = json_contents
+
+      # check for yaml
+      rescue
+        yaml_contents = YAML.load file_contents
+        return self.turplefile = yaml_contents
+      end
     end
 
-    def template
-      @@template
-    end
+  private
 
-    def data
-      @@data
-    end
-
-    def load_turplefile turplefile_path
-      # loop through root keys and store them (data, template, configuration)
+    # Add additional data to the collective turplefile
+    # @param hash [Hash] any hash of data to be merged into existing turplefile data
+    # @return [Hash] merged turplefile data with symbolized keys
+    def turplefile= hash
+      @@turplefile.merge! hash.deep_symbolize_keys
     end
   end
 
-  def initialize args
+private
+
+  # @private
+  def initialize template, data, configuration = {}
   end
 end
 

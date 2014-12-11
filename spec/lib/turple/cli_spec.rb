@@ -1,19 +1,19 @@
 describe Turple::Cli do
   describe '#ate' do
     before do
-      allow(Turple).to receive(:load_turplefile).and_return({ :template => 'turplefile/template', :data => { :data => true }})
-      allow(Turple).to receive(:template).and_return 'turplefile/template'
-      allow(Turple).to receive(:data).and_return({ :data => true })
-      allow(Turple).to receive(:configuration).and_return({ :configuration => true })
       allow(Turple).to receive(:ate).and_return true
+      allow(Turple).to receive(:load_turplefile).and_return({ :template => 'turplefile/template', :data => { :data => true }})
+
+      Turple.class_var :turplefile, {
+        :template => 'turplefile/template',
+        :data => { :data => true },
+        :configuration => { :configuration => true }
+      }
     end
 
     after do
-      allow(Turple).to receive(:load_turplefile).and_call_original
-      allow(Turple).to receive(:template).and_call_original
-      allow(Turple).to receive(:data).and_call_original
-      allow(Turple).to receive(:configuration).and_call_original
       allow(Turple).to receive(:ate).and_call_original
+      allow(Turple).to receive(:load_turplefile).and_call_original
     end
 
     it 'should set configuration cli flag' do
@@ -37,7 +37,7 @@ describe Turple::Cli do
 
     context 'when --template is passed' do
       it 'should initialize with passed value' do
-        expect(Turple).to receive(:ate).with hash_including({ :template => 'user/template' })
+        expect(Turple).to receive(:ate).with 'user/template', anything, anything
         Turple::Cli.start ['ate', '--template', 'user/template']
       end
     end
@@ -45,7 +45,7 @@ describe Turple::Cli do
     context 'when --template is NOT passed' do
       it 'should initialize with value from Turplefile' do
         allow(Turple).to receive(:template).and_return 'turplefile/template'
-        expect(Turple).to receive(:ate).with hash_including({ :template => 'turplefile/template' })
+        expect(Turple).to receive(:ate).with 'turplefile/template', anything, anything
 
         Turple::Cli.start ['ate']
       end
@@ -53,14 +53,14 @@ describe Turple::Cli do
 
     context 'when --destination is passed' do
       it 'should initialize with passed value' do
-        expect(Turple).to receive(:ate).with hash_including({ :destination => 'user/destination' })
+        expect(Turple).to receive(:ate).with anything, anything, hash_including({ :destination => 'user/destination' })
         Turple::Cli.start ['ate', '--destination', 'user/destination']
       end
     end
 
     context 'when --destination is NOT passed' do
       it 'should initialize with current directory' do
-        expect(Turple).to receive(:ate).with hash_including({ :destination => Dir.pwd })
+        expect(Turple).to receive(:ate).with anything, anything, hash_including({ :destination => Dir.pwd })
         Turple::Cli.start ['ate']
       end
     end
