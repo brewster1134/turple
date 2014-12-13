@@ -14,24 +14,36 @@ class Turple
   require 'turple/cli'
   require 'turple/template'
 
-  DEFAULT_CONFIGURATION = {
-    # default regex for file names to interpolate content of
-    # matches files with an extension of `.turple`
-    # (e.g. foo.txt.turple)
-    :file_ext_regex => /\.turple$/,
+  @@turplefile = {
+    :configuration => {
+      # default regex for file names to interpolate content of
+      # matches files with an extension of `.turple`
+      # (e.g. foo.txt.turple)
+      :file_ext_regex => /\.turple$/,
 
-    # default regex for path interpolation
-    # matches capitalized, dot-notated keys surrounded with single brackets
-    # (e.g. [FOO.BAR])
-    :path_regex => /\[([A-Z_.]+)\]/,
+      # default regex for path interpolation
+      # make sure to include the path_separator
+      # matches capitalized, dot-notated keys surrounded with single brackets
+      # (e.g. [FOO.BAR])
+      :path_regex => /\[([A-Z_.]+)\]/,
 
-    # default regex for content interpolation
-    # matches lowercase, dot-notated keys surrounded with `<>`
-    # (e.g. [FOO.BAR])
-    :content_regex => /<>([a-z_.]+)<>/
+      # default separator for attributes in the path
+      # the separator must exist in the path_regex capture group
+      # (e.g. [FOO.BAR])
+      :path_separator => '.',
+
+      # default regex for content interpolation
+      # make sure to include the content_separator
+      # matches lowercase, dot-notated keys surrounded with `<>`
+      # (e.g. <>foo.bar<>)
+      :content_regex => /<>([a-z_.]+)<>/,
+
+      # default separator for attributes in file contents
+      # the separator must exist in the content_regex capture group
+      # (e.g. <>foo.bar<>)
+      :content_separator => '.'
+    }
   }
-
-  @@turplefile = {}
 
   # Class methods
   class << self
