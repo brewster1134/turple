@@ -1,5 +1,6 @@
 [![Gem Version](https://badge.fury.io/rb/turple.svg)](http://badge.fury.io/rb/turple)
 [![Build Status](https://travis-ci.org/brewster1134/turple.svg?branch=master)](https://travis-ci.org/brewster1134/turple)
+[![Coverage Status](https://coveralls.io/repos/brewster1134/turple/badge.png)](https://coveralls.io/r/brewster1134/turple)
 
 # Turple
 recursive templating
