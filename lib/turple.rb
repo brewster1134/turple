@@ -14,7 +14,7 @@ class Turple
   require 'turple/cli'
   require 'turple/template'
 
-  @@turplefile = {
+  @@turpleobject = {
     :configuration => {
       # default regex for file names to interpolate content of
       # matches files with an extension of `.turple`
@@ -49,54 +49,51 @@ class Turple
   class << self
     # Allows Turple.ate vs Turple.new
     alias_method :ate, :new
+  end
 
-    # Get data from loaded turplefiles
-    # @return [Hash]
-    def data; @@turplefile[:data] ; end
+  # Get template path from loaded turplefiles
+  # @return [String]
+  def self.template; @@turpleobject[:template] ; end
 
-    # Get template path from loaded turplefiles
-    # @return [String]
-    def template; @@turplefile[:template] ; end
+  # Get data from loaded turplefiles
+  # @return [Hash]
+  def self.data; @@turpleobject[:data] ; end
 
-    # Get configuration from loaded turplefiles
-    # @return [Hash]
-    def configuration; @@turplefile[:configuration] ; end
+  # Get configuration from loaded turplefiles
+  # @return [Hash]
+  def self.configuration; @@turpleobject[:configuration] ; end
 
-    # Read file contents, attempt to convert contents to a ruby hash, and call setter to merge hash into the turplefile
-    # Supported File Types:
-    #   json
-    #   yaml
-    #
-    # @param file [String] relative/absolute path to a supported file
-    # @return [Hash]
-    def load_turplefile file
-      file_contents = File.read(File.expand_path(file))
+  # Read file contents, attempt to convert contents to a ruby hash, and call setter to merge hash into the turplefile
+  # Supported File Types:
+  #   json
+  #   yaml
+  #
+  # @param file [String] relative/absolute path to a supported file
+  # @return [Hash]
+  def self.load_turplefile file
+    file_contents = File.read(File.expand_path(file))
 
-      # check for json
-      begin
-        json_contents = JSON.load file_contents
-        return self.turplefile = json_contents
+    # check for json
+    begin
+      json_contents = JSON.load file_contents
+      return self.turpleobject = json_contents
 
-      # check for yaml
-      rescue
-        yaml_contents = YAML.load file_contents
-        return self.turplefile = yaml_contents
-      end
+    # check for yaml
+    rescue
+      yaml_contents = YAML.load file_contents
+      return self.turpleobject = yaml_contents
     end
+  end
 
-  private
-
-    # Add additional data to the collective turplefile
-    # @param hash [Hash] any hash of data to be merged into existing turplefile data
-    # @return [Hash] merged turplefile data with symbolized keys
-    def turplefile= hash
-      @@turplefile.merge! hash.deep_symbolize_keys
-    end
+  # Add additional data to the collective turplefile
+  # @param hash [Hash] any hash of data to be merged into existing turplefile data
+  # @return [Hash] merged turplefile data with symbolized keys
+  def self.turpleobject= hash
+    @@turpleobject.merge! hash.deep_symbolize_keys
   end
 
 private
 
-  # @private
   def initialize template, data, configuration = {}
   end
 end

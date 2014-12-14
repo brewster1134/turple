@@ -7,7 +7,7 @@ Gem::Specification.new do |s|
   s.homepage = 'https://github.com/brewster1134/sourcerer'
   s.license = 'MIT'
   s.name = 'sourcerer_'
-  s.summary = 'Consume remote sources with ease.'
+  s.summary = 'Recursive custom templating'
   s.version = '0.0.4'
   s.add_runtime_dependency 'archive-zip', '~> 0.7.0'
   s.add_runtime_dependency 'git', '~> 1.2.8'
