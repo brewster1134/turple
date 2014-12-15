@@ -1,0 +1,7 @@
+template: 'template_[FOO.BAR]'
+data:
+  foo:
+    bar: default
+data_map:
+  foo:
+    bar: The name of the foo bar

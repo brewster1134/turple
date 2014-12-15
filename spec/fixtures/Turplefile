@@ -1,4 +1,0 @@
-template: 'default_[FOO.BAR]'
-data:
-  foo:
-    bar: default

@@ -9,15 +9,22 @@ class Turple::Template
 private
 
   def initialize path, data, configuration
+    # set basic variables
     @path = File.expand_path path
     @configuration = configuration
 
+    # validate template path
     prompt_for_template unless valid_path?
 
+    # load template turplefile after validatin path
+    Turple.load_turplefile File.join(@path, 'Turplefile')
+
+    # validate configuration
+    valid_configuration?
+
+    # set data variables after validating path and configuration
     @data = data.deep_symbolize_keys
     @required_data = scan_for_data @path
-
-    valid_configuration?
   end
 
   # Scan a path and determine the required data needed to interpolate it

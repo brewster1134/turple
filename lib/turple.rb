@@ -75,7 +75,10 @@ class Turple
   # @param file [String] relative/absolute path to a supported file
   # @return [Hash]
   def self.load_turplefile file
-    file_contents = File.read(File.expand_path(file))
+    # veriy file exists and set file contents to a variable
+    file = File.expand_path(file)
+    return false unless File.exists? file
+    file_contents = File.read file
 
     # check for json
     begin
