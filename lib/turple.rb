@@ -19,13 +19,13 @@ class Turple
       # default regex for file names to interpolate content of
       # matches files with an extension of `.turple`
       # (e.g. foo.txt.turple)
-      :file_ext_regex => /\.turple$/,
+      :file_ext => 'turple',
 
       # default regex for path interpolation
       # make sure to include the path_separator
       # matches capitalized, dot-notated keys surrounded with single brackets
       # (e.g. [FOO.BAR])
-      :path_regex => /\[([A-Z_.]+)\]/,
+      :path_regex => /\[([A-Z_\.]+)\]/,
 
       # default separator for attributes in the path
       # the separator must exist in the path_regex capture group
@@ -53,15 +53,19 @@ class Turple
 
   # Get template path from loaded turplefiles
   # @return [String]
-  def self.template; @@turpleobject[:template] ; end
+  def self.template; @@turpleobject[:template]; end
 
   # Get data from loaded turplefiles
   # @return [Hash]
-  def self.data; @@turpleobject[:data] ; end
+  def self.data; @@turpleobject[:data]; end
+
+  # Get data map from loaded turplefiles
+  # @return [Hash]
+  def self.data_map; @@turpleobject[:data_map]; end
 
   # Get configuration from loaded turplefiles
   # @return [Hash]
-  def self.configuration; @@turpleobject[:configuration] ; end
+  def self.configuration; @@turpleobject[:configuration]; end
 
   # Read file contents, attempt to convert contents to a ruby hash, and call setter to merge hash into the turplefile
   # Supported File Types:

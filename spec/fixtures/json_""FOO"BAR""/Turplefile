@@ -1,6 +1,6 @@
 {
   "config": {
-    "file_ext_regex": "/.turplejson$/",
+    "file_ext": "turplejson",
     "path_regex": "/\"\"([A-Z_.]+)\"\"/",
     "path_separator": "\"",
     "content_regex": "/<<([a-z_]+)>>/"

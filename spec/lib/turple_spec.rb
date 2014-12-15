@@ -1,17 +1,34 @@
 describe Turple do
   describe '.load_turplefile' do
-    it 'should handle yaml format' do
-      Turple.load_turplefile File.join(ROOT_DIR, 'spec', 'fixtures', 'Turplefile.yaml')
+    before do
+      allow(Turple).to receive(:turpleobject=)
+    end
 
-      expect(Turple.data[:foo][:bar]).to eq 'yaml'
-      expect(Turple.template).to eq 'yaml_//FOO/BAR//'
+    before do
+      allow(Turple).to receive(:turpleobject=).and_call_original
+    end
+
+    it 'should handle yaml format' do
+      expect(Turple).to receive(:turpleobject=).with hash_including({ 'template' => 'yaml_//FOO/BAR//' })
+      Turple.load_turplefile File.join(ROOT_DIR, 'spec', 'fixtures', 'Turplefile.yaml')
     end
 
     it 'should handle json format' do
+      expect(Turple).to receive(:turpleobject=).with hash_including({ 'template' => 'json_""FOO"BAR""' })
       Turple.load_turplefile File.join(ROOT_DIR, 'spec', 'fixtures', 'Turplefile.json')
+    end
+  end
 
-      expect(Turple.data[:foo][:bar]).to eq 'json'
-      expect(Turple.template).to eq 'json_""FOO"BAR""'
+  describe '.turpleobject=' do
+    it 'should merge hash into turpleobject with symbolized keys' do
+      Turple.turpleobject = {
+        'configuration' => {
+          'foo' => {
+            'bar' => 'baz'
+          }
+        }
+      }
+      expect(Turple.configuration[:foo][:bar]).to eq 'baz'
     end
   end
 

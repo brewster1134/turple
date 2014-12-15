@@ -1,5 +1,3 @@
-require 'active_support/core_ext/kernel/reporting'
-
 describe Turple::Cli do
   describe '#ate' do
     before do

@@ -61,7 +61,7 @@
 #         # dont process tmp dir
 #         next if path == @tmp_processed_dir
 
-#         if File.file?(path) && path =~ @options[:file_ext_regex]
+#         if File.file?(path) && path =~ @options[:file_ext]
 #           process_file path
 #         end
 #       end
@@ -79,7 +79,7 @@
 #       end
 
 #       # Remove the .erb from the file name
-#       FileUtils.mv file, file.sub(@options[:file_ext_regex], '')
+#       FileUtils.mv file, file.sub(@options[:file_ext], '')
 #     end
 
 #     def process_string string

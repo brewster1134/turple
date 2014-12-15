@@ -1,11 +1,22 @@
 describe Turple::Template do
-  describe '.scan_for_data' do
+  describe '#scan_for_data' do
     before do
-      @template = File.join(ROOT_DIR, 'spec', 'fixtures', 'required_data[ROOT.DIR]')
+      allow_any_instance_of(Turple::Template).to receive(:valid_configuration?)
+      @template = Turple::Template.new File.join(ROOT_DIR, 'spec', 'fixtures', 'required_data[ROOT.DIR]'), {}, {
+        :file_ext => 'turple',
+        :path_regex => /\[([A-Z_\.]+)\]/,
+        :path_separator => '.',
+        :content_regex => /<>([a-z_.]+)<>/,
+        :content_separator => '.'
+      }
+    end
+
+    after do
+      allow_any_instance_of(Turple::Template).to receive(:valid_configuration?).and_call_original
     end
 
     it 'should collect required data' do
-      expect(Turple::Template.scan_for_data(@template)).to eq({
+      expect(@template.required_data).to eq({
         :root => {
           :dir => true,
           :file_content => true
@@ -20,30 +31,35 @@ describe Turple::Template do
     end
   end
 
-  describe.skip '#prompt_for_template' do
+  describe '#prompt_for_template' do
     before do
-      allow(Readline).to receive(:readline).and_return 'foo', ROOT_DIR
-      @cli = Turple::Cli.new
+      allow_any_instance_of(Turple::Template).to receive(:scan_for_data)
+      allow_any_instance_of(Turple::Template).to receive(:valid_configuration?).and_return true
 
-      quietly do
-        @template = @cli.send(:prompt_for_template)
-      end
+      @template = Turple::Template.new '', {}, {}
+
+      allow(@template).to receive(:valid_path?).and_return false, false, true
+      allow(A).to receive(:sk)
+
+      @template.send :prompt_for_template
     end
 
     after do
-      allow(Readline).to receive(:readline).and_call_original
+      allow_any_instance_of(Turple::Template).to receive(:scan_for_data).and_call_original
+      allow_any_instance_of(Turple::Template).to receive(:valid_configuration?).and_call_original
+      allow(A).to receive(:sk).and_call_original
     end
 
     it 'should prompt user until template is valid' do
-      expect(Readline).to have_received(:readline).twice
+      # check valid path 3 times
+      expect(@template).to have_received(:valid_path?).exactly(3).times
+
+      # only 2 of the 3 checks were false, so we only prompt twice
+      expect(A).to have_received(:sk).exactly(2).times
     end
 
     it 'should return user input template' do
-      expect(@template).to eq ROOT_DIR
+      expect(@template.path).to eq ROOT_DIR
     end
-  end
-
-  describe '#prompt_for_data' do
-
   end
 end
