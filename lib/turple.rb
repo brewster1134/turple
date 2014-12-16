@@ -12,6 +12,7 @@ S.set_preset :error, {
 class Turple
   # classes
   require 'turple/cli'
+  require 'turple/data'
   require 'turple/template'
 
   @@turpleobject = {

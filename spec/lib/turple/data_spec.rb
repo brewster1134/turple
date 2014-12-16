@@ -1,41 +1,58 @@
-# class DataSpec
-#   include Turple::Data
-# end
+describe Turple::Data do
+  before do
+    required_data = {
+      :foo => {
+        :bar => {
+          :baz => true,
+          :bez => true,
+          :biz => true
+        }
+      }
+    }
 
-# describe Turple::Data do
-#   before do
-#     @data = DataSpec.new
-#   end
+    provided_data = {
+      :foo => {
+        :bar => {
+          :baz => 'Baz'
+        }
+      }
+    }
 
-#   describe '#load' do
-#     it 'should process yaml data' do
-#       yaml_data_file = File.join(ROOT_DIR, 'spec', 'fixtures', 'data.yaml')
+    data_map = {
+      :foo => {
+        :bar => {
+          :bez => 'The name of the foo bar bez'
+        }
+      }
+    }
 
-#       expect(@data.load(yaml_data_file).foo.bar).to eq 'baz'
-#     end
+    @data = Turple::Data.new required_data, provided_data, data_map
+  end
 
-#     it 'should process json data' do
-#       json_data_file = File.join(ROOT_DIR, 'spec', 'fixtures', 'data.json')
+  describe '#build_data_map' do
+    it 'should augment the data map with missing values' do
+      expect(@data.instance_var(:data_map)).to eq({
+        :foo => {
+          :bar => {
+            :baz => [:foo, :bar, :baz],
+            :bez => 'The name of the foo bar bez',
+            :biz => [:foo, :bar, :biz]
+          }
+        }
+      })
+    end
+  end
 
-#       expect(@data.load(json_data_file).foo.bar).to eq 'baz'
-#     end
-
-#     it 'should request user input for missing data' do
-#       allow(@data).to receive(:prompt)
-#       expect(@data.load(nil)).to have_received :prompt
-#     end
-#   end
-
-#   describe '#scan' do
-#     it 'should return all interpolation keys' do
-#       template_dir = File.join(ROOT_DIR, 'spec', 'fixtures', 'dir_one_[FOO.BAR]')
-#       keys = @data.scan template_dir
-
-#       expect(keys).to eq({
-#         foo: {
-#           bar: nil
-#         }
-#       })
-#     end
-#   end
-# end
+  describe '#missing_data' do
+    it 'should compare required data with and provided data' do
+      expect(@data.instance_var(:missing_data)).to eq({
+        :foo => {
+          :bar => {
+            :bez => 'The name of the foo bar bez',
+            :biz => [:foo, :bar, :biz]
+          }
+        }
+      })
+    end
+  end
+end
