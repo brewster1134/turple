@@ -1,29 +1,27 @@
 require 'active_support/core_ext/hash/deep_merge'
-require 'active_support/core_ext/hash/keys'
 require 'cli_miami'
 require 'find'
 
 class Turple::Template
-  attr_accessor :path, :required_data
+  attr_accessor :path, :required_data, :configuration
 
 private
 
-  def initialize path, data, configuration
+  def initialize path, configuration = {}
     # set basic variables
     @path = File.expand_path path
-    @configuration = configuration
+    @configuration = Turple.configuration.deep_merge configuration
 
     # validate template path
-    prompt_for_template unless valid_path?
+    valid_path?
 
-    # load template turplefile after validatin path
+    # load template turplefile after validating path
     Turple.load_turplefile File.join(@path, 'Turplefile')
 
-    # validate configuration
+    # validate configuration after loading turplefile
     valid_configuration?
 
     # set data variables after validating path and configuration
-    @data = data.deep_symbolize_keys
     @required_data = scan_for_data @path
   end
 
@@ -38,8 +36,9 @@ private
       if File.file?(path)
 
         # process file paths
-        if path =~ @configuration[:path_regex]
-          capture_groups = path.scan(@configuration[:path_regex]).flatten
+        path_regex = Regexp.new @configuration[:path_regex]
+        if path =~ path_regex
+          capture_groups = path.scan(path_regex).flatten
 
           capture_groups.each do |group|
             group_attributes = group.split(@configuration[:path_separator])
@@ -50,8 +49,9 @@ private
         end
 
         # process file contents
+        content_regex = Regexp.new @configuration[:content_regex]
         if path =~ /\.#{Regexp.escape(@configuration[:file_ext])}$/
-          capture_groups = File.read(path).scan(@configuration[:content_regex]).flatten
+          capture_groups = File.read(path).scan(content_regex).flatten
 
           capture_groups.each do |group|
             group_attributes = group.split(@configuration[:content_separator])
@@ -65,18 +65,10 @@ private
 
     # check that the template requires data
     if required_data.empty?
-      raise S.ay 'Turple::Template - No Required Data - Nothing found to interpolate.  Make sure your configuration matches your template.', :error
+      raise S.ay 'Turple | No Required Data - Nothing found to interpolate.  Make sure your configuration matches your template.', :error
     end
 
     return required_data
-  end
-
-  def prompt_for_template
-    until valid_path?
-      A.sk 'what template?', :readline => true do |response|
-        @path = response
-      end
-    end
   end
 
   # check that the template path exists
@@ -86,44 +78,46 @@ private
     # in cli mode, return false so we can prompt the user for a template path
     # otherwise raise an exception
     if @configuration[:cli]
-      return false
+      until valid_path?
+        A.sk 'what template?', :readline => true do |response|
+          @path = File.expand_path response
+        end
+      end
     else
-      raise S.ay "Turple::Template - Invalid Path - #{@path}", :error
+      raise S.ay "Turple | Invalid Path - #{@path}", :error
     end
   end
 
   def valid_configuration?
     # check that a configuration exists
     if @configuration.empty?
-      raise S.ay 'Turple::Template - No Configuration Found', :error
+      raise S.ay 'Turple | No Configuration Found', :error
     end
 
     # check that a configuration values are valid
     #
-    if  !@configuration[:file_ext].is_a? String ||
-        # make sure the string is a valid extension with no period's in it
+    # make sure the string is a valid extension with no period's in it
+    if !@configuration[:file_ext].is_a? String ||
         @configuration[:file_ext] =~ /^[^.]+$/
-      raise S.ay "Turple::Template - `file_ext` is invalid.  See README for requirements.", :error
+      raise S.ay "Turple | `file_ext` is invalid.  See README for requirements.", :error
     end
 
     if !@configuration[:path_separator].is_a? String
-      raise S.ay "Turple::Template - `path_separator` is invalid.  See README for requirements.", :error
+      raise S.ay "Turple | `path_separator` is invalid.  See README for requirements.", :error
     end
 
     if !@configuration[:content_separator].is_a? String
-      raise S.ay "Turple::Template - `content_separator` is invalid.  See README for requirements.", :error
+      raise S.ay "Turple | `content_separator` is invalid.  See README for requirements.", :error
     end
 
-    if  !@configuration[:path_regex].is_a? Regexp ||
-        # make sure it contains the path separator in the capture group
-        !@configuration[:path_regex].inspect =~ /\(.*#{Regexp.escape(@configuration[:path_separator])}.*\)/
-      raise S.ay "Turple::Template - `path_regex` invalid.  See README for requirements.", :error
+    # make sure it contains the path separator in the capture group
+    if !@configuration[:path_regex] =~ /\(.*#{Regexp.escape(@configuration[:path_separator])}.*\)/
+      raise S.ay "Turple | `path_regex` invalid.  See README for requirements.", :error
     end
 
-    if  !@configuration[:content_regex].is_a? Regexp ||
-        # make sure it contains the path separator in the capture group
-        !@configuration[:content_regex].inspect =~ /\(.*#{Regexp.escape(@configuration[:content_separator])}.*\)/
-      raise S.ay "Turple::Template - `content_regex` invalid.  See README for requirements.", :error
+    # make sure it contains the path separator in the capture group
+    if !@configuration[:content_regex] =~ /\(.*#{Regexp.escape(@configuration[:content_separator])}.*\)/
+      raise S.ay "Turple | `content_regex` invalid.  See README for requirements.", :error
     end
 
     return true

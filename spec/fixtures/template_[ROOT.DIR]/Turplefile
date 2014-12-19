@@ -1,7 +1,17 @@
-template: 'template_[FOO.BAR]'
-data:
-  foo:
-    bar: default
+name: Default Turple Configuration
+configuration:
+  file_ext: turple
+  path_regex: '/\[([A-Z_\.]+)\]/'
+  path_separator: .
+  content_regex: '/<>([a-z_.]+)<>/'
+  content_separator: .
 data_map:
-  foo:
-    bar: The name of the foo bar
+  root:
+    dir: What is the rootdir
+    file_content: What is the rootfilecontent
+  sub:
+    dir: What is the subdir
+    file: What is the subfile
+    empty: What is the subempty
+    file_content: What is the subfilecontent
+  file_content: What is the filecontent

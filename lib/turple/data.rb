@@ -1,17 +1,19 @@
+require 'cli_miami'
+require 'recursive-open-struct'
+
 class Turple::Data
-  # attr_reader :data_map, :missing_data
+  def data; @provided_data; end
 
 private
 
   def initialize required_data, provided_data, data_map = {}
-    @required_data = required_data
-    @provided_data = provided_data
-    @data_map = build_data_map @required_data, data_map
-    @missing_data = missing_data @required_data, @provided_data, @data_map
+    @provided_data = RecursiveOpenStruct.new provided_data
 
-    unless @missing_data.empty?
-      prompt_for_data @missing_data
-    end
+    data_map = build_data_map required_data, data_map
+    missing_data = missing_data required_data, @provided_data, data_map
+
+    # if there is missing data, prompt user to enter it in
+    prompt_for_data missing_data unless missing_data.empty?
   end
 
   # populate missing data map values to match required data
@@ -23,7 +25,7 @@ private
   # @return [Hash] complete data map hash
   #
   def build_data_map required_data, data_map
-    build_missing_keys(required_data).deep_merge data_map
+    build_data_map_keys(required_data).deep_merge data_map
   end
 
   # create a new hash with the values replaced with an array of parent keys
@@ -33,12 +35,12 @@ private
   #
   # @return [Hash] mirrored hash with array of parent keys instead of the intial value
   #
-  def build_missing_keys hash, keys = []
+  def build_data_map_keys hash, keys = []
     # go through each key-value pair
     hash.each do |key, val|
       # if the value is a Hash, recurse and add the key to the array of parents
       if val.is_a? Hash
-        build_missing_keys(val, keys.push(key))
+        build_data_map_keys(val, keys.push(key))
         # remove last parent when we're done with this pair
         keys.pop
       else
@@ -82,7 +84,7 @@ private
   # @return [Hash] complete provided data hash
   #
   def prompt_for_data missing_data
-    @provided_data.deep_merge! prompt_for_key(missing_data)
+    @provided_data.deep_merge! prompt_for_data_keys(missing_data)
   end
 
   # loop through the missing data hash and prompt user to enter said data
@@ -91,10 +93,10 @@ private
   #
   # @return [Hash] complete missing data hash
   #
-  def prompt_for_key missing_data
+  def prompt_for_data_keys missing_data
     missing_data.each do |key, value|
       if value.is_a? Hash
-        missing_data[key] = prompt_for_key value
+        missing_data[key] = prompt_for_data_keys value
       else
         A.sk value do |response|
           missing_data[key] = response

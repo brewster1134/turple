@@ -8,19 +8,17 @@ describe Turple do
       allow(Turple).to receive(:turpleobject=).and_call_original
     end
 
-    it 'should handle yaml format' do
-      expect(Turple).to receive(:turpleobject=).with hash_including({ 'template' => 'yaml_//FOO/BAR//' })
-      Turple.load_turplefile File.join(ROOT_DIR, 'spec', 'fixtures', 'Turplefile.yaml')
-    end
+    it 'should read Turplefile into turpleobject' do
+      expect(Turple).to receive(:turpleobject=).with hash_including({
+        'name' => 'Default Turple Configuration'
+      })
 
-    it 'should handle json format' do
-      expect(Turple).to receive(:turpleobject=).with hash_including({ 'template' => 'json_""FOO"BAR""' })
-      Turple.load_turplefile File.join(ROOT_DIR, 'spec', 'fixtures', 'Turplefile.json')
+      Turple.load_turplefile File.join(ROOT_DIR, 'spec', 'fixtures', 'template_[ROOT.DIR]', 'Turplefile')
     end
   end
 
   describe '.turpleobject=' do
-    it 'should merge hash into turpleobject with symbolized keys' do
+    it 'should symbolize keys' do
       Turple.turpleobject = {
         'configuration' => {
           'foo' => {
@@ -28,8 +26,24 @@ describe Turple do
           }
         }
       }
+
       expect(Turple.configuration[:foo][:bar]).to eq 'baz'
     end
+
+    # it 'should convert regex string to regex object' do
+    #   Turple.turpleobject = {
+    #     'configuration' => {
+    #       'path_regex' => '/\[([A-Z_\.]+)\]/',
+    #       'content_regex' => '/<>([a-z_.]+)<>/'
+    #     }
+    #   }
+
+    #   puts Turple.configuration
+    #   expect(Turple.configuration[:path_regex]).to be_a Regexp
+    #   expect(Turple.configuration[:path_regex]).to eq(/\[([A-Z_\.]+)\]/)
+    #   expect(Turple.configuration[:content_regex]).to be_a Regexp
+    #   expect(Turple.configuration[:content_regex]).to eq(/<>([a-z_.]+)<>/)
+    # end
   end
 
 #   before do

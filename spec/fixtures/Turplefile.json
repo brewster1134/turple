@@ -1,8 +1,0 @@
-{
-  "template": "json_\"\"FOO\"BAR\"\"",
-  "data": {
-    "foo": {
-      "bar": "json"
-    }
-  }
-}

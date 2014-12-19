@@ -1,4 +1,0 @@
-template: yaml_//FOO/BAR//
-data:
-  foo:
-    bar: yaml

@@ -3,12 +3,14 @@ describe Turple::Cli do
     before do
       allow(Turple).to receive(:ate)
       allow(Turple).to receive(:turpleobject=)
+      allow(Turple).to receive(:method_missing)
       allow(Turple).to receive(:load_turplefile)
     end
 
     after do
       allow(Turple).to receive(:ate).and_call_original
       allow(Turple).to receive(:turpleobject=).and_call_original
+      allow(Turple).to receive(:method_missing).and_call_original
       allow(Turple).to receive(:load_turplefile).and_call_original
     end
 

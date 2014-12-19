@@ -91,9 +91,14 @@ describe Turple::Data do
   describe '#prompt_for_data' do
     before do
       allow_any_instance_of(Turple::Data).to receive(:prompt_for_data).and_call_original
-      allow(A).to receive(:sk).and_yield('Mr. Baz')#.and_yield('Mr. Poo')
+      allow(A).to receive(:sk).and_yield('Mr. Baz')
 
       @data.instance_var :provided_data, {
+        :foo => {
+          :bar => {
+            :bez => 'Mr. Bez'
+          }
+        },
         :user => 'data'
       }
 
@@ -116,10 +121,11 @@ describe Turple::Data do
     end
 
     it 'should add data to provided data' do
-      expect(@data.instance_var(:provided_data)).to eq({
+      expect(@data.data).to eq({
         :foo => {
           :bar => {
-            :baz => 'Mr. Baz'
+            :baz => 'Mr. Baz',
+            :bez => 'Mr. Bez'
           }
         },
         :baz => 'Mr. Baz',
