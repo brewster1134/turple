@@ -97,26 +97,26 @@ private
     # check that a configuration values are valid
     #
     # make sure the string is a valid extension with no period's in it
-    if !@configuration[:file_ext].is_a? String ||
-        @configuration[:file_ext] =~ /^[^.]+$/
+    if !@configuration[:file_ext].is_a?(String) ||
+        @configuration[:file_ext] =~ /\./
       raise S.ay "Turple | `file_ext` is invalid.  See README for requirements.", :error
     end
 
-    if !@configuration[:path_separator].is_a? String
+    if !@configuration[:path_separator].is_a?(String)
       raise S.ay "Turple | `path_separator` is invalid.  See README for requirements.", :error
     end
 
-    if !@configuration[:content_separator].is_a? String
+    if !@configuration[:content_separator].is_a?(String)
       raise S.ay "Turple | `content_separator` is invalid.  See README for requirements.", :error
     end
 
     # make sure it contains the path separator in the capture group
-    if !@configuration[:path_regex] =~ /\(.*#{Regexp.escape(@configuration[:path_separator])}.*\)/
+    if !(@configuration[:path_regex] =~ /\(.*#{Regexp.escape(@configuration[:path_separator])}.*\)/)
       raise S.ay "Turple | `path_regex` invalid.  See README for requirements.", :error
     end
 
     # make sure it contains the path separator in the capture group
-    if !@configuration[:content_regex] =~ /\(.*#{Regexp.escape(@configuration[:content_separator])}.*\)/
+    if !(@configuration[:content_regex] =~ /\(.*#{Regexp.escape(@configuration[:content_separator])}.*\)/)
       raise S.ay "Turple | `content_regex` invalid.  See README for requirements.", :error
     end
 
