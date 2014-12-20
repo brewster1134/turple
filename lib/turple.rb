@@ -21,6 +21,8 @@ class Turple
   end
 
   @@turpleobject = {
+    :data => {},
+    :data_map => {},
     :configuration => {
       # default regex for file names to interpolate content of
       # matches files with an extension of `.turple`
@@ -42,7 +44,7 @@ class Turple
       # make sure to include the content_separator
       # matches lowercase, dot-notated keys surrounded with `<>`
       # (e.g. <>foo.bar<>)
-      :content_regex => '<>([a-z_.]+)<>',
+      :content_regex => '<>([a-z_\.]+)<>',
 
       # default separator for attributes in file contents
       # the separator must exist in the content_regex capture group

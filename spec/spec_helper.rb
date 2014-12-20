@@ -64,6 +64,10 @@ RSpec.configure do |config|
     mocks.verify_partial_doubles = true
   end
 
+
+  config.before :suite do
+    DEFAULT_CONFIGURATION = Turple.configuration
+  end
 end
 
 ROOT_DIR = File.expand_path File.join(File.dirname(__FILE__), '..')

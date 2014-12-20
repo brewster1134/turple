@@ -2,15 +2,15 @@ require 'cli_miami'
 require 'recursive-open-struct'
 
 class Turple::Data
-  def data; @provided_data; end
+  def data; RecursiveOpenStruct.new @provided_data; end
 
 private
 
   def initialize required_data, provided_data, data_map = {}
-    @provided_data = RecursiveOpenStruct.new provided_data
+    @provided_data = provided_data
 
-    data_map = build_data_map required_data, data_map
-    missing_data = missing_data required_data, @provided_data, data_map
+    data_map = build_data_map required_data, Turple.data_map.deep_merge(data_map)
+    missing_data = get_missing_data required_data, @provided_data, data_map
 
     # if there is missing data, prompt user to enter it in
     prompt_for_data missing_data unless missing_data.empty?
@@ -59,7 +59,7 @@ private
   #
   # @return [Hash] hash of missing data with data map descriptions (or nested keys)
   #
-  def missing_data required_data, provided_data, data_map
+  def get_missing_data required_data, provided_data, data_map
     required_data.keys.inject({}) do |diff, k|
       # if the hashes dont match on a particular key...
       if required_data[k] != provided_data[k]
@@ -98,6 +98,7 @@ private
       if value.is_a? Hash
         missing_data[key] = prompt_for_data_keys value
       else
+        value = value.join(' | ') if value.is_a? Array
         A.sk value do |response|
           missing_data[key] = response
         end

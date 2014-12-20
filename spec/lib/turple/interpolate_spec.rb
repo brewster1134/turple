@@ -8,15 +8,7 @@ describe Turple::Interpolate do
       def self.path
         File.join(ROOT_DIR, 'spec', 'fixtures', 'template_[ROOT.DIR]')
       end
-      def self.configuration
-        {
-          :file_ext => 'turple',
-          :path_regex => /\[([A-Z_\.]+)\]/,
-          :path_separator => '.',
-          :content_regex => /<>([a-z_.]+)<>/,
-          :content_separator => '.'
-        }
-      end
+      def self.configuration; DEFAULT_CONFIGURATION; end
     end
 
     class InterpolateData
@@ -36,6 +28,12 @@ describe Turple::Interpolate do
         })
       end
     end
+
+    Turple.load_turplefile File.join(InterpolateTemplate.path, 'Turplefile')
+    Turple.turpleobject = ({
+      :configuration => InterpolateTemplate.configuration,
+      :data => InterpolateData.data.to_hash
+    })
 
     @interpolate = Turple::Interpolate.new InterpolateTemplate, InterpolateData, Dir.mktmpdir
   end
@@ -77,7 +75,7 @@ EOS
     expect(new_turplefile[:template]).to eq InterpolateTemplate.path
     expect(new_turplefile[:configuration]).to eq InterpolateTemplate.configuration
     expect(new_turplefile[:data]).to eq InterpolateData.data.to_hash
-    expect(new_turplefile[:data_map]).to eq({ :foo => { :bar => 'The name of the foo bar' }})
-    expect(new_turplefile[:created_on]).to exist
+    expect(new_turplefile[:data_map]).to eq Turple.data_map
+    expect(new_turplefile[:created_on]).to be_a String
   end
 end
