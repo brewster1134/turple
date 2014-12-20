@@ -15,8 +15,7 @@ private
     @tmp_dir = Dir.mktmpdir
 
     process_template! create_tmp_template!
-
-    save_turplefile!
+    create_turplefile!
   end
 
   # create the destination directory if it doesnt not exist
@@ -135,7 +134,7 @@ private
   #
   # @return [File]
   #
-  def save_turplefile!
+  def create_turplefile!
     # get new template name based on the first directory of the destination
     turplefile_path = File.join(Dir[File.join(@destination, '**')].first, 'Turplefile')
     turplefile_object = Turple.turpleobject.merge({

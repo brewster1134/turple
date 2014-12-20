@@ -29,6 +29,9 @@ describe Turple::Interpolate do
       end
     end
 
+    # create emtpy dir since they are ignored by git
+    FileUtils.mkdir_p File.join(InterpolateTemplate.path, 'subempty_[SUB.EMPTY]')
+
     Turple.load_turplefile File.join(InterpolateTemplate.path, 'Turplefile')
     Turple.turpleobject = ({
       :configuration => InterpolateTemplate.configuration,

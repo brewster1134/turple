@@ -17,16 +17,12 @@ describe Turple::Data do
 
     provided_data = {
       :rpm => 'Required Provided Mapped',
-      :rp => 'Required Provided',
-      # :pm => 'Provided Mapped',
-      # :p => 'Provided'
+      :rp => 'Required Provided'
     }
 
     data_map = {
       :rpm => 'What is Required Provided Mapped?',
-      :rm => 'What is Required Mapped?',
-      # :pm => 'What is Provided Mapped?',
-      # :m => 'What is Mapped?'
+      :rm => 'What is Required Mapped?'
     }
 
     @data = Turple::Data.new required_data, provided_data, data_map
