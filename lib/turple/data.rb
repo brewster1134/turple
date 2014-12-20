@@ -6,7 +6,7 @@ class Turple::Data
 
 private
 
-  def initialize required_data, provided_data, data_map = {}
+  def initialize required_data, provided_data, data_map
     @provided_data = provided_data
 
     data_map = build_data_map required_data, Turple.data_map.deep_merge(data_map)

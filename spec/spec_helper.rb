@@ -64,12 +64,18 @@ RSpec.configure do |config|
     mocks.verify_partial_doubles = true
   end
 
+  config.before do
+    allow(A).to receive(:sk)
+    allow(S).to receive(:ay)
+  end
 
-  config.before :suite do
-    DEFAULT_CONFIGURATION = Turple.configuration
+  config.after do
+    allow(A).to receive(:sk).and_call_original
+    allow(S).to receive(:ay).and_call_original
   end
 end
 
+DEFAULT_CONFIGURATION = Turple.configuration
 ROOT_DIR = File.expand_path File.join(File.dirname(__FILE__), '..')
 
 class Object

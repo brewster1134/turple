@@ -7,10 +7,10 @@ class Turple::Template
 
 private
 
-  def initialize path, configuration = {}
+  def initialize path, configuration
     # set basic variables
-    @path = File.expand_path path
-    @configuration = Turple.configuration.deep_merge configuration
+    @path = path
+    @configuration = configuration
 
     # validate template path
     valid_path?

@@ -1,3 +1,4 @@
+require 'active_support/core_ext/hash/deep_merge'
 require 'active_support/core_ext/hash/keys'
 require 'cli_miami'
 require 'yaml'
@@ -86,6 +87,16 @@ class Turple
 
 private
 
-  def initialize template, data, configuration = {}
+  def initialize template_path, data_hash, configuration_hash
+    # prepare valid
+    @template_path = File.expand_path template_path
+    @data_hash = data_hash
+    @configuration_hash = Turple.configuration.deep_merge configuration_hash
+
+    # Initialize components
+    @template = Turple::Template.new @template_path, @configuration_hash
+    @data = Turple::Data.new @template.required_data, Turple.data, Turple.data_map
+    puts 'call Turple.configuration'
+    @interpolate = Turple::Interpolate @template, @data, Turple.configuration[:destination]
   end
 end

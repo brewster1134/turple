@@ -33,14 +33,6 @@ describe Turple::Template do
   end
 
   context 'with an invalid configuration' do
-    before do
-      allow(S).to receive(:ay)
-    end
-
-    after do
-      allow(S).to receive(:ay).and_call_original
-    end
-
     it 'should raise an error for invalid file_ext' do
       expect{Turple::Template.new(File.join(ROOT_DIR, 'spec', 'fixtures', 'template_[ROOT.DIR]'), {
         :file_ext => 'tur.ple'
