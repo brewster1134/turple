@@ -43,7 +43,7 @@ describe Turple::Data do
 
   it 'should prompt for missing data' do
     expect(A).to have_received(:sk).twice
-    expect(A).to have_received(:sk).with 'What is Required Mapped?'
-    expect(A).to have_received(:sk).with 'r'
+    expect(A).to have_received(:sk).with 'What is Required Mapped?', anything
+    expect(A).to have_received(:sk).with 'r', anything
   end
 end

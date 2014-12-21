@@ -1,9 +1,9 @@
 name: Default Turple Configuration
 configuration:
   file_ext: turple
-  path_regex: '/\[([A-Z_\.]+)\]/'
+  path_regex: '\[([A-Z_\.]+)\]'
   path_separator: .
-  content_regex: '/<>([a-z_.]+)<>/'
+  content_regex: '<>([a-z_\.]+)<>'
   content_separator: .
 data_map:
   root:

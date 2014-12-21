@@ -29,14 +29,16 @@ describe Turple::Interpolate do
       end
     end
 
+    allow(Turple).to receive(:turpleobject).and_return({
+      :configuration => InterpolateTemplate.configuration,
+      :data => InterpolateData.data.to_hash,
+      :data_map => InterpolateData.data.to_hash
+    })
+
     # create emtpy dir since they are ignored by git
     FileUtils.mkdir_p File.join(InterpolateTemplate.path, 'subempty_[SUB.EMPTY]')
 
     Turple.load_turplefile File.join(InterpolateTemplate.path, 'Turplefile')
-    Turple.turpleobject = ({
-      :configuration => InterpolateTemplate.configuration,
-      :data => InterpolateData.data.to_hash
-    })
 
     @interpolate = Turple::Interpolate.new InterpolateTemplate, InterpolateData, Dir.mktmpdir
   end

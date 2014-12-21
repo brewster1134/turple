@@ -13,7 +13,15 @@ private
     missing_data = get_missing_data required_data, @provided_data, data_map
 
     # if there is missing data, prompt user to enter it in
-    prompt_for_data missing_data unless missing_data.empty?
+    unless missing_data.empty?
+      S.ay 'There is some missing data. You will be prompted to enter each value.', :prompt
+      prompt_for_data missing_data
+    end
+
+    # add provided data to turpleobject
+    Turple.turpleobject = {
+      :data => @provided_data
+    }
   end
 
   # populate missing data map values to match required data
@@ -64,7 +72,7 @@ private
       # if the hashes dont match on a particular key...
       if required_data[k] != provided_data[k]
         if required_data[k].is_a?(Hash) && provided_data[k].is_a?(Hash)
-          diff[k] = missing_data(required_data[k], provided_data[k], data_map[k])
+          diff[k] = get_missing_data(required_data[k], provided_data[k], data_map[k])
         else
           # set the key to false if it doesnt exist in the 2nd hash
           unless provided_data[k]
@@ -99,7 +107,7 @@ private
         missing_data[key] = prompt_for_data_keys value
       else
         value = value.join(' | ') if value.is_a? Array
-        A.sk value do |response|
+        A.sk value, :preset => :prompt do |response|
           missing_data[key] = response
         end
       end

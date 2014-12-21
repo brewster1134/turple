@@ -9,25 +9,19 @@ private
 
   def initialize template, data, destination
     @template_path = template.path
-    @configuration = template.configuration
     @data = data.data
-    @destination = get_destination destination
+    @destination = destination
+    @configuration = template.configuration
     @tmp_dir = Dir.mktmpdir
 
-    process_template! create_tmp_template!
-    create_turplefile!
-  end
+    # create destination directory
+    FileUtils.mkdir_p @destination
 
-  # create the destination directory if it doesnt not exist
-  #
-  # @param destination [String] path to a destination to save interpolated template to
-  #
-  # @return [Pathname] path object to the destination directory
-  #
-  def get_destination destination
-    # raise error if desination directory is not empty
-    raise S.ay('Turple | Destination directory is not empty', :error) if Dir.entries(destination).size > 2
-    Pathname.new FileUtils.mkdir_p(destination).first
+    # interpolate directory and copy to destination
+    process_template! create_tmp_template!
+
+    # save a turplefile to the destination
+    create_turplefile!
   end
 
   # Copy template to tmp dir and get the new path
@@ -137,7 +131,7 @@ private
   def create_turplefile!
     # get new template name based on the first directory of the destination
     turplefile_path = File.join(Dir[File.join(@destination, '**')].first, 'Turplefile')
-    turplefile_object = Turple.turpleobject.merge({
+    turplefile_object = Turple.turpleobject.deep_merge({
       template: @template_path,
       :created_on => Date.today.to_s
     })

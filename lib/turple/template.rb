@@ -8,12 +8,17 @@ class Turple::Template
 private
 
   def initialize path, configuration
-    # set basic variables
     @path = path
     @configuration = configuration
 
     # validate template path
-    valid_path?
+    unless valid_path?
+      if @configuration[:cli]
+        prompt_for_path
+      else
+        raise S.ay "Invalid Path `#{@path}`", :error
+      end
+    end
 
     # load template turplefile after validating path
     Turple.load_turplefile File.join(@path, 'Turplefile')
@@ -65,33 +70,38 @@ private
 
     # check that the template requires data
     if required_data.empty?
-      raise S.ay 'Turple | No Required Data - Nothing found to interpolate.  Make sure your configuration matches your template.', :error
+      raise S.ay 'No Required Data - Nothing found to interpolate.  Make sure your configuration matches your template.', :error
     end
 
     return required_data
   end
 
-  # check that the template path exists
+  # check that the path is a valid template
+  # @return [Boolean]
+  #
   def valid_path?
-    return true if File.exists? @path
-
-    # in cli mode, return false so we can prompt the user for a template path
-    # otherwise raise an exception
-    if @configuration[:cli]
-      until valid_path?
-        A.sk 'what template?', :readline => true do |response|
-          @path = File.expand_path response
-        end
-      end
-    else
-      raise S.ay "Turple | Invalid Path - #{@path}", :error
-    end
+    File.exists?(@path) && File.exists?(File.join(@path, 'Turplefile'))
   end
 
+  # prompt the user for a template path until a vaid one is entered
+  # @return [String] valid template path
+  #
+  def prompt_for_path
+    until valid_path?
+      A.sk 'Enter a path to a Turple Template', :preset => :prompt, :readline => true do |response|
+        @path = File.expand_path response
+      end
+    end
+    @path
+  end
+
+  # check the configuration is valid
+  # @return [Boolean]
+  #
   def valid_configuration?
     # check that a configuration exists
     if @configuration.empty?
-      raise S.ay 'Turple | No Configuration Found', :error
+      raise S.ay 'No Configuration Found', :error
     end
 
     # check that a configuration values are valid
@@ -99,25 +109,25 @@ private
     # make sure the string is a valid extension with no period's in it
     if !@configuration[:file_ext].is_a?(String) ||
         @configuration[:file_ext] =~ /\./
-      raise S.ay "Turple | `file_ext` is invalid.  See README for requirements.", :error
+      raise S.ay "`file_ext` is invalid.  See README for requirements.", :error
     end
 
     if !@configuration[:path_separator].is_a?(String)
-      raise S.ay "Turple | `path_separator` is invalid.  See README for requirements.", :error
+      raise S.ay "`path_separator` is invalid.  See README for requirements.", :error
     end
 
     if !@configuration[:content_separator].is_a?(String)
-      raise S.ay "Turple | `content_separator` is invalid.  See README for requirements.", :error
+      raise S.ay "`content_separator` is invalid.  See README for requirements.", :error
     end
 
     # make sure it contains the path separator in the capture group
     if !(@configuration[:path_regex] =~ /\(.*#{Regexp.escape(@configuration[:path_separator])}.*\)/)
-      raise S.ay "Turple | `path_regex` invalid.  See README for requirements.", :error
+      raise S.ay "`path_regex` invalid.  See README for requirements.", :error
     end
 
     # make sure it contains the path separator in the capture group
     if !(@configuration[:content_regex] =~ /\(.*#{Regexp.escape(@configuration[:content_separator])}.*\)/)
-      raise S.ay "Turple | `content_regex` invalid.  See README for requirements.", :error
+      raise S.ay "`content_regex` invalid.  See README for requirements.", :error
     end
 
     return true

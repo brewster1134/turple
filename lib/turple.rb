@@ -8,6 +8,10 @@ S.set_preset :error, {
   :color => :red,
   :style => :bold
 }
+S.set_preset :prompt, {
+  :color => :blue,
+  :style => :bright
+}
 
 class Turple
   # classes
@@ -22,6 +26,7 @@ class Turple
   end
 
   @@turpleobject = {
+    :template => '',
     :data => {},
     :data_map => {},
     :configuration => {
@@ -82,21 +87,55 @@ class Turple
   # @param hash [Hash] any hash of data to be merged into existing turplefile data
   # @return [Hash] merged turplefile data with symbolized keys
   def self.turpleobject= hash
-    @@turpleobject.merge! hash.deep_symbolize_keys
+    @@turpleobject.deep_merge! hash.deep_symbolize_keys
+  end
+
+  # check that the destination path doesnt exist... turple creates a new directory from a template
+  # @return [Boolean]
+  #
+  def valid_destination?
+    !File.exists? File.expand_path @destination_path
+  end
+
+  # prompt the user for a template path until a vaid one is entered
+  # create the destination directory if it doesnt not exist
+  # @return [String] valid template path
+  #
+  def prompt_for_destination_path
+    until valid_destination?
+      A.sk 'Enter a path to save your project to', :preset => :prompt, :readline => true do |response|
+        @destination_path = response
+      end
+    end
+
+    Turple.turpleobject = {
+      :configuration => {
+        :destination => File.expand_path(@destination_path)
+      }
+    }
   end
 
 private
 
   def initialize template_path, data_hash, configuration_hash
-    # prepare valid
-    @template_path = File.expand_path template_path
-    @data_hash = data_hash
-    @configuration_hash = Turple.configuration.deep_merge configuration_hash
+    template_path = File.expand_path template_path
+    data_hash = Turple.data.deep_merge data_hash
+    data_map_hash = Turple.data_map
+    configuration_hash = Turple.configuration.deep_merge configuration_hash
+
+    # validate destination path
+    @destination_path = configuration_hash[:destination]
+    unless valid_destination?
+      if configuration_hash[:cli]
+        prompt_for_destination_path
+      else
+        raise S.ay "Invalid destination: Please enter a non-existent directory: `#{@destination_path}`", :error
+      end
+    end
 
     # Initialize components
-    @template = Turple::Template.new @template_path, @configuration_hash
-    @data = Turple::Data.new @template.required_data, Turple.data, Turple.data_map
-    puts 'call Turple.configuration'
-    @interpolate = Turple::Interpolate @template, @data, Turple.configuration[:destination]
+    template = Turple::Template.new template_path, configuration_hash
+    data = Turple::Data.new template.required_data, data_hash, data_map_hash
+    Turple::Interpolate.new template, data, @destination_path
   end
 end

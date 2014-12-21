@@ -1,32 +1,32 @@
 describe Turple do
-  describe.skip '#initialize' do
+  describe '#initialize' do
     before do
-      Turple.load_turplefile File.join(ROOT_DIR, 'spec', 'fixtures', 'template_[ROOT.DIR]', 'Turplefile')
-      template_path = File.join(ROOT_DIR, 'spec', 'fixtures', 'template_[ROOT.DIR]', 'Turplefile')
-      configuration_hash = DEFAULT_CONFIGURATION
+      allow(Turple::Interpolate).to receive(:new).and_call_original
+
+      template_path = File.join(ROOT_DIR, 'spec', 'fixtures', 'template_[ROOT.DIR]')
+      Turple.load_turplefile File.join(template_path, 'Turplefile')
+      configuration_hash = DEFAULT_CONFIGURATION.deep_merge({
+        :destination => File.join(Dir.mktmpdir, 'project')
+      })
       data_hash = {
-        :data_map => {
-          :root => {
-            :dir => 'rootdir',
-            :file_content => 'rootfilecontent'
-          },
-          sub: {
-            :dir => 'subdir',
-            :file => 'subfile',
-            :empty => 'subempty',
-            :file_content => 'subfilecontent'
-          },
-          :file_content => 'filecontent'
-        }
+        :root => {
+          :dir => 'rootdir',
+          :file_content => 'rootfilecontent'
+        },
+        sub: {
+          :dir => 'subdir',
+          :file => 'subfile',
+          :empty => 'subempty',
+          :file_content => 'subfilecontent'
+        },
+        :file_content => 'filecontent'
       }
 
       @turple = Turple.new template_path, data_hash, configuration_hash
     end
 
     it 'should initialize all components' do
-      expect(@turple.instance_var(:template)).to be_a Turple::Template
-      expect(@turple.instance_var(:data)).to be_a Turple::Data
-      expect(@turple.instance_var(:interpolate)).to be_a Turple::Interpolate
+      expect(Turple::Interpolate).to have_received(:new).with instance_of(Turple::Template), instance_of(Turple::Data), instance_of(String)
     end
   end
 
