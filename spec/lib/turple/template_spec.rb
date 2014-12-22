@@ -9,7 +9,7 @@ describe Turple::Template do
 
   context 'with a valid configuration' do
     before do
-      @template = Turple::Template.new File.join(ROOT_DIR, 'spec', 'fixtures', 'template_[ROOT.DIR]'), DEFAULT_CONFIGURATION
+      @template = Turple::Template.new File.join(ROOT_DIR, 'spec', 'fixtures', 'template'), DEFAULT_CONFIGURATION
     end
 
     it 'should load turplefile at template root' do
@@ -18,14 +18,9 @@ describe Turple::Template do
 
     it 'should collect required data' do
       expect(@template.required_data).to eq({
-        :root => {
-          :dir => true,
-          :file_content => true
-        },
         :sub => {
           :dir => true,
-          :file => true,
-          :file_content => true
+          :file => true
         },
         :file_content => true
       })
@@ -34,32 +29,32 @@ describe Turple::Template do
 
   context 'with an invalid configuration' do
     it 'should raise an error for invalid file_ext' do
-      expect{Turple::Template.new(File.join(ROOT_DIR, 'spec', 'fixtures', 'template_[ROOT.DIR]'), {
+      expect{Turple::Template.new(File.join(ROOT_DIR, 'spec', 'fixtures', 'template'), {
         :file_ext => 'tur.ple'
       })}.to raise_error
     end
 
     it 'should raise an error for invalid path_separator' do
-      expect{Turple::Template.new(File.join(ROOT_DIR, 'spec', 'fixtures', 'template_[ROOT.DIR]'), {
+      expect{Turple::Template.new(File.join(ROOT_DIR, 'spec', 'fixtures', 'template'), {
         :path_separator => :foo
       })}.to raise_error
     end
 
     it 'should raise an error for invalid content_separator' do
-      expect{Turple::Template.new(File.join(ROOT_DIR, 'spec', 'fixtures', 'template_[ROOT.DIR]'), {
+      expect{Turple::Template.new(File.join(ROOT_DIR, 'spec', 'fixtures', 'template'), {
         :content_separator => :foo
       })}.to raise_error
     end
 
     it 'should raise an error for invalid path_regex' do
-      expect{Turple::Template.new(File.join(ROOT_DIR, 'spec', 'fixtures', 'template_[ROOT.DIR]'), {
+      expect{Turple::Template.new(File.join(ROOT_DIR, 'spec', 'fixtures', 'template'), {
         :path_separator => '.',
         :path_regex => '\[([A-Z_]+)\]'
       })}.to raise_error
     end
 
     it 'should raise an error for invalid content_regex' do
-      expect{Turple::Template.new(File.join(ROOT_DIR, 'spec', 'fixtures', 'template_[ROOT.DIR]'), {
+      expect{Turple::Template.new(File.join(ROOT_DIR, 'spec', 'fixtures', 'template'), {
         :content_separator => '.',
         :content_regex => '<>([a-z_]+)<>'
       })}.to raise_error

@@ -6,7 +6,7 @@ describe Turple::Interpolate do
   before do
     class InterpolateTemplate
       def self.path
-        File.join(ROOT_DIR, 'spec', 'fixtures', 'template_[ROOT.DIR]')
+        File.join(ROOT_DIR, 'spec', 'fixtures', 'template')
       end
       def self.configuration; DEFAULT_CONFIGURATION; end
     end
@@ -14,15 +14,10 @@ describe Turple::Interpolate do
     class InterpolateData
       def self.data
         RecursiveOpenStruct.new({
-          :root => {
-            :dir => 'rootdir',
-            :file_content => 'rootfilecontent'
-          },
           :sub => {
             :dir => 'subdir',
             :file => 'subfile',
-            :empty => 'subempty',
-            :file_content => 'subfilecontent'
+            :empty => 'subempty'
           },
           :file_content => 'filecontent'
         })
@@ -40,42 +35,42 @@ describe Turple::Interpolate do
 
     Turple.load_turplefile File.join(InterpolateTemplate.path, 'Turplefile')
 
-    @interpolate = Turple::Interpolate.new InterpolateTemplate, InterpolateData, Dir.mktmpdir
+    @destination = File.expand_path(File.join('tmp', 'project'))
+    @interpolate = Turple::Interpolate.new InterpolateTemplate, InterpolateData, @destination
+  end
+
+  after do
+    FileUtils.rm_rf @destination
   end
 
   it 'should copy interpolated template to destination' do
     # verify directories
-    expect(File.directory?(File.join(@interpolate.destination, 'template_rootdir'))).to eq true
-    expect(File.directory?(File.join(@interpolate.destination, 'template_rootdir', 'subdir'))).to eq true
-    expect(File.directory?(File.join(@interpolate.destination, 'template_rootdir', 'subdir_subdir'))).to eq true
-    expect(File.directory?(File.join(@interpolate.destination, 'template_rootdir', 'subempty_subempty'))).to eq true
+    expect(File.directory?(File.join(@interpolate.destination))).to eq true
+    expect(File.directory?(File.join(@interpolate.destination, 'subdir'))).to eq true
+    expect(File.directory?(File.join(@interpolate.destination, 'subdir_subdir'))).to eq true
+    expect(File.directory?(File.join(@interpolate.destination, 'subempty_subempty'))).to eq true
 
     # verify files
-    expect(File.file?(File.join(@interpolate.destination, 'template_rootdir', 'subdir', 'file1.txt'))).to eq true
-    expect(File.file?(File.join(@interpolate.destination, 'template_rootdir', 'subdir_subdir', 'file1_subfile.txt'))).to eq true
-    expect(File.file?(File.join(@interpolate.destination, 'template_rootdir', 'subdir_subdir', 'file2_subfile.txt'))).to eq true
-    expect(File.file?(File.join(@interpolate.destination, 'template_rootdir', 'Turplefile'))).to eq true
+    expect(File.file?(File.join(@interpolate.destination, 'subdir', 'file1.txt'))).to eq true
+    expect(File.file?(File.join(@interpolate.destination, 'subdir_subdir', 'file1_subfile.txt'))).to eq true
+    expect(File.file?(File.join(@interpolate.destination, 'subdir_subdir', 'file2_subfile.txt'))).to eq true
+    expect(File.file?(File.join(@interpolate.destination, 'Turplefile'))).to eq true
 
     # verify no extras
-    escaped_path = File.join(@interpolate.destination, 'template_rootdir').gsub(/([\[\]\{\}\*\?\\])/, '\\\\\1')
-    expect(Dir[File.join(escaped_path, '**/*')].count).to eq 7
+    expect(Dir[File.join(@interpolate.destination, '**/*')].count).to eq 7
   end
 
   it 'should interpolate file contents' do
-    expect(File.read(File.join(@interpolate.destination, 'template_rootdir', 'subdir_subdir', 'file1_subfile.txt'))).to eq <<-EOS
-root rootfilecontent file content
-sub subfilecontent file content
+    expect(File.read(File.join(@interpolate.destination, 'subdir_subdir', 'file1_subfile.txt'))).to eq <<-EOS
 file filecontent content
 EOS
-    expect(File.read(File.join(@interpolate.destination, 'template_rootdir', 'subdir_subdir', 'file2_subfile.txt'))).to eq <<-EOS
-root rootfilecontent file content
-sub subfilecontent file content
+    expect(File.read(File.join(@interpolate.destination, 'subdir_subdir', 'file2_subfile.txt'))).to eq <<-EOS
 file filecontent content
 EOS
   end
 
   it 'should save a complete Turplefile' do
-    new_turplefile = YAML.load(File.read(File.join(@interpolate.destination, 'template_rootdir', 'Turplefile'))).deep_symbolize_keys
+    new_turplefile = YAML.load(File.read(File.join(@interpolate.destination, 'Turplefile'))).deep_symbolize_keys
 
     expect(new_turplefile[:template]).to eq InterpolateTemplate.path
     expect(new_turplefile[:configuration]).to eq InterpolateTemplate.configuration

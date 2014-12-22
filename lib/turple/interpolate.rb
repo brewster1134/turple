@@ -8,17 +8,21 @@ class Turple::Interpolate
 private
 
   def initialize template, data, destination
-    @template_path = template.path
+    @template = template.path
     @data = data.data
     @destination = destination
     @configuration = template.configuration
     @tmp_dir = Dir.mktmpdir
+    @project_name = File.basename @destination
 
-    # create destination directory
+    # make sure the destination exists
     FileUtils.mkdir_p @destination
 
+    # copy the template to tmp, and set the new path to process
+    create_tmp_project!
+
     # interpolate directory and copy to destination
-    process_template! create_tmp_template!
+    process_template! @tmp_project
 
     # save a turplefile to the destination
     create_turplefile!
@@ -26,9 +30,10 @@ private
 
   # Copy template to tmp dir and get the new path
   #
-  def create_tmp_template!
-    FileUtils.cp_r @template_path, @tmp_dir
-    File.join(@tmp_dir, File.basename(@template_path))
+  def create_tmp_project!
+    FileUtils.cp_r @template, @tmp_dir
+
+    @tmp_project = File.join(@tmp_dir, File.basename(@template))
   end
 
   # Collect paths to interpolate
@@ -38,6 +43,9 @@ private
   #
   def process_template! template_path
     Find.find template_path do |path|
+      # don't process root dir
+      next if path == template_path
+
       # if path is a file...
       # or path is an empty directory
       if File.file?(path) || Dir.entries(path).size <= 2
@@ -52,7 +60,7 @@ private
   #
   def process_path! path
     # start the new_path out matching the original path
-    new_path = path
+    new_path = path.dup
 
     # interpolate file contents
     file_ext_regex = /\.#{Regexp.escape(@configuration[:file_ext])}$/
@@ -76,7 +84,7 @@ private
     new_path.sub! file_ext_regex, ''
 
     # replace the tmp dir path, with the destination path
-    new_path.sub! @tmp_dir, @destination.to_s
+    new_path.sub! @tmp_project, @destination
 
     copy_path! path, new_path
   end
@@ -130,9 +138,9 @@ private
   #
   def create_turplefile!
     # get new template name based on the first directory of the destination
-    turplefile_path = File.join(Dir[File.join(@destination, '**')].first, 'Turplefile')
+    turplefile_path = File.join(@destination, 'Turplefile')
     turplefile_object = Turple.turpleobject.deep_merge({
-      template: @template_path,
+      template: @template,
       :created_on => Date.today.to_s
     })
 

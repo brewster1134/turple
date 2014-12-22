@@ -6,12 +6,8 @@ configuration:
   content_regex: '<>([a-z_\.]+)<>'
   content_separator: .
 data_map:
-  root:
-    dir: What is the rootdir
-    file_content: What is the rootfilecontent
   sub:
     dir: What is the subdir
     file: What is the subfile
     empty: What is the subempty
-    file_content: What is the subfilecontent
   file_content: What is the filecontent

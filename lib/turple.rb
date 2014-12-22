@@ -55,7 +55,10 @@ class Turple
       # default separator for attributes in file contents
       # the separator must exist in the content_regex capture group
       # (e.g. <>foo.bar<>)
-      :content_separator => '.'
+      :content_separator => '.',
+
+      # if not destination is provided, create in a generic turple subdir of the pwd dir
+      :destination => 'turple'
     }
   }
 
@@ -94,7 +97,7 @@ class Turple
   # @return [Boolean]
   #
   def valid_destination?
-    !File.exists? File.expand_path @destination_path
+    !@destination_path.nil? && !@destination_path.empty?
   end
 
   # prompt the user for a template path until a vaid one is entered
@@ -104,7 +107,7 @@ class Turple
   def prompt_for_destination_path
     until valid_destination?
       A.sk 'Enter a path to save your project to', :preset => :prompt, :readline => true do |response|
-        @destination_path = response
+        @destination_path = File.expand_path response
       end
     end
 
@@ -129,7 +132,7 @@ private
       if configuration_hash[:cli]
         prompt_for_destination_path
       else
-        raise S.ay "Invalid destination: Please enter a non-existent directory: `#{@destination_path}`", :error
+        raise S.ay 'Please use a non-existent directory.  Turple will create it.', :error
       end
     end
 

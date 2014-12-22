@@ -3,21 +3,16 @@ describe Turple do
     before do
       allow(Turple::Interpolate).to receive(:new).and_call_original
 
-      template_path = File.join(ROOT_DIR, 'spec', 'fixtures', 'template_[ROOT.DIR]')
-      Turple.load_turplefile File.join(template_path, 'Turplefile')
+      template_path = File.join(ROOT_DIR, 'spec', 'fixtures', 'template')
+      # Turple.load_turplefile File.join(template_path, 'Turplefile')
       configuration_hash = DEFAULT_CONFIGURATION.deep_merge({
         :destination => File.join(Dir.mktmpdir, 'project')
       })
       data_hash = {
-        :root => {
-          :dir => 'rootdir',
-          :file_content => 'rootfilecontent'
-        },
         sub: {
           :dir => 'subdir',
           :file => 'subfile',
-          :empty => 'subempty',
-          :file_content => 'subfilecontent'
+          :empty => 'subempty'
         },
         :file_content => 'filecontent'
       }
@@ -44,7 +39,7 @@ describe Turple do
         'name' => 'Default Turple Configuration'
       })
 
-      Turple.load_turplefile File.join(ROOT_DIR, 'spec', 'fixtures', 'template_[ROOT.DIR]', 'Turplefile')
+      Turple.load_turplefile File.join(ROOT_DIR, 'spec', 'fixtures', 'template', 'Turplefile')
     end
   end
 
