@@ -14,6 +14,11 @@ describe Turple::Cli do
       allow(Turple).to receive(:load_turplefile).and_call_original
     end
 
+    it 'should load the destination Turplefile' do
+      expect(Turple).to receive(:load_turplefile).with File.join(Dir.pwd, 'Turplefile')
+      Turple::Cli.start ['ate']
+    end
+
     it 'should set configuration cli flag' do
       expect(Turple).to receive(:turpleobject=) do |object|
         object[:configuration][:cli] == true
@@ -24,20 +29,6 @@ describe Turple::Cli do
     it 'should initialize turple' do
       expect(Turple).to receive(:ate).with anything, anything, anything
       Turple::Cli.start ['ate']
-    end
-
-    context 'when --turplefile is not passed' do
-      it 'should load Turplefile from current directory' do
-        expect(Turple).to receive(:load_turplefile).with File.join(Dir.pwd, 'Turplefile')
-        Turple::Cli.start ['ate']
-      end
-    end
-
-    context 'when --turplefile is passed' do
-      it 'should load passed file' do
-        expect(Turple).to receive(:load_turplefile).with 'user/turplefile'
-        Turple::Cli.start ['ate', '--turplefile', 'user/turplefile']
-      end
     end
 
     context 'when --template is not passed' do

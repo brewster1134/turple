@@ -3,22 +3,36 @@ require 'active_support/core_ext/hash/keys'
 require 'cli_miami'
 require 'yaml'
 
-# Create CLI Miami presets
-S.set_preset :error, {
-  :color => :red,
-  :style => :bold
-}
-S.set_preset :prompt, {
-  :color => :blue,
-  :style => :bright
-}
-
 class Turple
   # classes
   require 'turple/cli'
   require 'turple/data'
   require 'turple/interpolate'
   require 'turple/template'
+
+  # Create CLI Miami presets
+  @@line_size = 80
+  CliMiami.set_preset :error, {
+    :color => :red,
+    :style => :bold
+  }
+  CliMiami.set_preset :prompt, {
+    :color => :blue,
+    :style => :bright
+  }
+  CliMiami.set_preset :header, CliMiami.presets[:prompt].merge({
+    :justify => :center,
+    :padding => @@line_size
+  })
+  CliMiami.set_preset :key, CliMiami.presets[:prompt].merge({
+    :justify => :rjust,
+    :padding => @@line_size / 2,
+    :preset => :prompt,
+    :newline => false
+  })
+  CliMiami.set_preset :value, {
+    :indent => 1
+  }
 
   # Allows Turple.ate vs Turple.new
   class << self
@@ -137,8 +151,27 @@ private
     end
 
     # Initialize components
-    template = Turple::Template.new template_path, configuration_hash
-    data = Turple::Data.new template.required_data, data_hash, data_map_hash
-    Turple::Interpolate.new template, data, @destination_path
+    @template = Turple::Template.new template_path, configuration_hash
+    @data = Turple::Data.new @template.required_data, data_hash, data_map_hash
+    @interpolate = Turple::Interpolate.new @template, @data, @destination_path
+
+    output_summary if configuration_hash[:cli]
+  end
+
+  def output_summary
+    S.ay '=' * @@line_size, :prompt
+    S.ay '!TURPLE SUCCESS!', :preset => :header
+    S.ay '=' * @@line_size, :prompt
+
+    S.ay 'Turpleated ', :newline => false, :indent => 2
+    S.ay @template.name, :newline => false, :preset => :prompt
+    S.ay ' to a new project ', :newline => false
+    S.ay @interpolate.project_name, :preset => :prompt
+
+    S.ay 'Paths Turpleated:', :key
+    S.ay Dir[File.join(@destination_path, '**/*')].count.to_s, :value
+    S.ay 'Turpleated in:', :key
+    S.ay (@interpolate.time * 1000).round(1).to_s + 'ms', :value
+    S.ay '=' * @@line_size, :prompt
   end
 end

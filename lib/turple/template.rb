@@ -3,7 +3,7 @@ require 'cli_miami'
 require 'find'
 
 class Turple::Template
-  attr_accessor :path, :required_data, :configuration
+  attr_accessor :path, :required_data, :configuration, :name
 
 private
 
@@ -28,6 +28,7 @@ private
 
     # set data variables after validating path and configuration
     @required_data = scan_for_data @path
+    @name = Turple.turpleobject[:name] || File.basename(@path)
   end
 
   # Scan a path and determine the required data needed to interpolate it

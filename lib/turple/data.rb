@@ -81,6 +81,7 @@ private
           end
         end
       end
+      diff.delete k if diff[k].nil? || diff[k].empty?
       diff
     end
   end
@@ -107,7 +108,7 @@ private
         missing_data[key] = prompt_for_data_keys value
       else
         value = value.join(' | ') if value.is_a? Array
-        A.sk value, :preset => :prompt do |response|
+        A.sk value, :prompt do |response|
           missing_data[key] = response
         end
       end

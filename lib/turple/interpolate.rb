@@ -3,7 +3,7 @@ require 'date'
 require 'yaml'
 
 class Turple::Interpolate
-  attr_reader :destination
+  attr_reader :destination, :time, :project_name
 
 private
 
@@ -18,6 +18,8 @@ private
     # make sure the destination exists
     FileUtils.mkdir_p @destination
 
+    start_timer = Time.now
+
     # copy the template to tmp, and set the new path to process
     create_tmp_project!
 
@@ -26,6 +28,9 @@ private
 
     # save a turplefile to the destination
     create_turplefile!
+
+    end_timer = Time.now
+    @time = end_timer - start_timer
   end
 
   # Copy template to tmp dir and get the new path

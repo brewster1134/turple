@@ -46,4 +46,14 @@ describe Turple::Data do
     expect(A).to have_received(:sk).with 'What is Required Mapped?', anything
     expect(A).to have_received(:sk).with 'r', anything
   end
+
+  describe '#get_missing_data' do
+    it 'should remove empty hashes' do
+      required_data = { :foo => { :bar => true }}
+      provided_data = { :foo => { :bar => 'foobar' }}
+      missing_data = @data.send :get_missing_data, required_data, provided_data, {}
+
+      expect(missing_data).to eq({})
+    end
+  end
 end
