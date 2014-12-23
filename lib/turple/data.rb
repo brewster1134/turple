@@ -14,7 +14,7 @@ private
 
     # if there is missing data, prompt user to enter it in
     unless missing_data.empty?
-      S.ay 'There is some missing data. You will be prompted to enter each value.', :prompt
+      S.ay 'There is some missing data. You will be prompted to enter each value.', :color => :white, :bgcolor => :blue
       prompt_for_data missing_data
     end
 

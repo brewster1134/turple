@@ -15,7 +15,7 @@ describe Turple::Cli do
     end
 
     it 'should load the destination Turplefile' do
-      expect(Turple).to receive(:load_turplefile).with File.join(Dir.pwd, 'Turplefile')
+      expect(Turple).to receive(:load_turplefile).with File.join(Dir.pwd, 'turple', 'Turplefile')
       Turple::Cli.start ['ate']
     end
 
