@@ -23,4 +23,6 @@ class Turple::Cli < Thor
     # initialize turple
     Turple.ate Turple.template, Turple.data, Turple.configuration
   end
+
+  default_task :ate
 end
