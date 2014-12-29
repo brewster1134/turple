@@ -107,7 +107,6 @@ class Turple
 private
 
   def initialize template_path, data_hash, configuration_hash
-    template_path = File.expand_path template_path
     data_hash = Turple.data.deep_merge data_hash
     data_map_hash = Turple.data_map
     configuration_hash = Turple.configuration.deep_merge configuration_hash

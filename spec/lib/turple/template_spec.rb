@@ -1,3 +1,5 @@
+require 'recursive-open-struct'
+
 describe Turple::Template do
   before do
     allow(Turple).to receive(:load_turplefile)
@@ -5,6 +7,30 @@ describe Turple::Template do
 
   after do
     allow(Turple).to receive(:load_turplefile).and_call_original
+  end
+
+  context 'when a source is detected' do
+    before do
+      allow_any_instance_of(Turple::Template).to receive(:valid_path?).and_return true
+      allow_any_instance_of(Turple::Template).to receive(:scan_for_data)
+      allow(Sourcerer).to receive(:new).and_return RecursiveOpenStruct.new({ :destination => '/path/to/source' })
+
+      @template = Turple::Template.new 'url|template', DEFAULT_CONFIGURATION
+    end
+
+    after do
+      allow_any_instance_of(Turple::Template).to receive(:valid_path?).and_call_original
+      allow_any_instance_of(Turple::Template).to receive(:scan_for_data).and_call_original
+      allow(Sourcerer).to receive(:new).and_call_original
+    end
+
+    it 'should download source' do
+      expect(Sourcerer).to have_received(:new).with 'url'
+    end
+
+    it 'should set path to source path' do
+      expect(@template.path).to eq '/path/to/source/template'
+    end
   end
 
   context 'with a valid configuration' do

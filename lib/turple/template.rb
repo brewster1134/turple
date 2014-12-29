@@ -1,14 +1,18 @@
 require 'active_support/core_ext/hash/deep_merge'
 require 'cli_miami'
 require 'find'
+require 'sourcerer'
 
 class Turple::Template
   attr_accessor :path, :required_data, :configuration, :name
 
+  # character used to split a remote source from a template name
+  SOURCE_SPLITTER = '|'
+
 private
 
   def initialize path, configuration
-    @path = path
+    @path = get_path path
     @configuration = configuration
 
     # validate template path
@@ -29,6 +33,25 @@ private
     # set data variables after validating path and configuration
     @required_data = scan_for_data @path
     @name = Turple.turpleobject[:name] || File.basename(@path)
+  end
+
+  # process path for possible a remote source
+  # use Sourcerer to download source
+  #
+  # @param path [String] template path
+  # @return [String] valid path to local directory containing template
+  #
+  def get_path path
+    # detect a remote source
+    if path.include? SOURCE_SPLITTER
+      source_template = path.split SOURCE_SPLITTER
+      source = Sourcerer.new source_template[0]
+      template = source_template[1]
+
+      File.join(source.destination, template)
+    else
+      return File.expand_path path
+    end
   end
 
   # Scan a path and determine the required data needed to interpolate it

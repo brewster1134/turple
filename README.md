@@ -41,6 +41,19 @@ Turple templates also have a Turplefile
 
 A turple template is simply a directory containing a Turplefile, and any amount of custom folders and files your project template needs.  The Turplefile inside a template has different data than a destination file.  It has instructions on how to prompt a user for data, and the configuration details on how the template is built.  _This example uses the default turple configuration._
 
+###### Remote Template
+You can easily share other user's templates by giving turple a remote source in addition to a template name.  This allows you to, for example, use templates stored in another user's github repo without having to clone or download it yourself.  Simply separate the source name from the template name with a pipe `|`. __You will need to use quotes around template names when using remote templates__
+
+```
+turple --template 'git@github.com:brewster1134/turple_templates.git|ruby_template'
+```
+
+Turple uses the [Sourcerer](https://github.com/brewster1134/sourcerer) gem to download remote sources to a tmp directory, which supports github shorthand...
+
+```
+turple --template 'brewster1134/turple_templates|ruby_template'
+```
+
 ### Configuration
 
 ```yaml
