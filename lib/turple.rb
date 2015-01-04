@@ -1,6 +1,8 @@
 require 'active_support/core_ext/hash/deep_merge'
 require 'active_support/core_ext/hash/keys'
 require 'cli_miami'
+require 'sourcerer'
+require 'tmpdir'
 require 'yaml'
 
 class Turple
@@ -8,41 +10,26 @@ class Turple
   require 'turple/cli'
   require 'turple/data'
   require 'turple/interpolate'
+  require 'turple/source'
   require 'turple/template'
 
-  # Create CLI Miami presets
-  @@line_size = 80
-  CliMiami.set_preset :error, {
-    :color => :red,
-    :style => :bold
-  }
-  CliMiami.set_preset :prompt, {
-    :color => :blue,
-    :style => :bright
-  }
-  CliMiami.set_preset :header, CliMiami.presets[:prompt].merge({
-    :justify => :center,
-    :padding => @@line_size
-  })
-  CliMiami.set_preset :key, CliMiami.presets[:prompt].merge({
-    :justify => :rjust,
-    :padding => @@line_size / 2,
-    :preset => :prompt,
-    :newline => false
-  })
-  CliMiami.set_preset :value, {
-    :indent => 1
-  }
+  # Turple internal configuration
+  CLI_LINE_LENGTH = 80
 
-  # Allows Turple.ate vs Turple.new
-  class << self
-    alias_method :ate, :new
-  end
-
+  # Turple user configuration defaults
   @@turpleobject = {
     :template => '',
     :data => {},
     :data_map => {},
+
+    # default sources to download
+    :sources => {
+      # :default => 'brewster1134/turple-templates'
+    },
+
+    # default destination
+    :destination => File.join(Dir.pwd, 'turple'),
+
     :configuration => {
       # default regex for file names to interpolate content of
       # matches files with an extension of `.turple`
@@ -73,6 +60,38 @@ class Turple
     }
   }
 
+  # CLI Miami
+  # presets
+  #
+  CliMiami.set_preset :error, {
+    :color => :red,
+    :style => :bold
+  }
+  CliMiami.set_preset :prompt, {
+    :color => :blue,
+    :style => :bright
+  }
+  CliMiami.set_preset :header, CliMiami.presets[:prompt].merge({
+    :justify => :center,
+    :padding => CLI_LINE_LENGTH
+  })
+  CliMiami.set_preset :key, CliMiami.presets[:prompt].merge({
+    :justify => :rjust,
+    :padding => CLI_LINE_LENGTH / 2,
+    :preset => :prompt,
+    :newline => false
+  })
+  CliMiami.set_preset :value, {
+    :indent => 1
+  }
+
+  attr_reader :sources
+
+  # Allows Turple.ate vs Turple.new
+  class << self
+    alias_method :ate, :new
+  end
+
   # Get loaded turplefiles contents
   # @return [Hash]
   #
@@ -90,27 +109,45 @@ class Turple
   # @return [Hash]
   #
   def self.load_turplefile turplefile_path
-    # return false if file doesnt exist
     turplefile_path = File.expand_path turplefile_path
+
+    # return false if file doesnt exist
     return false unless File.exists? turplefile_path
 
     self.turpleobject = YAML.load File.read turplefile_path
   end
 
   # Add additional data to the collective turplefile
+  #
   # @param hash [Hash] any hash of data to be merged into existing turplefile data
   # @return [Hash] merged turplefile data with symbolized keys
+  #
   def self.turpleobject= hash
     @@turpleobject.deep_merge! hash.deep_symbolize_keys
   end
 
 private
 
-  def initialize template_path, data_hash, configuration_hash
+  def initialize template_path, data_hash = {}, configuration_hash = {}
     data_hash = Turple.data.deep_merge data_hash
     data_map_hash = Turple.data_map
     configuration_hash = Turple.configuration.deep_merge configuration_hash
-    @destination_path = configuration_hash[:destination]
+    @destination_path = Turple.destination
+
+    # load Turplefiles in order...
+    # home, template, destination
+    [
+      '~',
+      template_path,
+      @destination_path
+    ].each do |path|
+      Turple.load_turplefile File.join(File.expand_path(path), 'Turplefile')
+    end
+
+    # create turplefile sources
+    Turple.sources.each do |source_name, source_path|
+      Turple::Source.new source_name, source_path
+    end
 
     if configuration_hash[:cli]
       S.ay 'Saving to: ', :preset => :prompt, :newline => false
@@ -126,9 +163,9 @@ private
   end
 
   def output_summary
-    S.ay '=' * @@line_size, :prompt
+    S.ay '=' * CLI_LINE_LENGTH, :prompt
     S.ay '!TURPLE SUCCESS!', :preset => :header
-    S.ay '=' * @@line_size, :prompt
+    S.ay '=' * CLI_LINE_LENGTH, :prompt
 
     S.ay 'Turpleated ', :newline => false, :indent => 2
     S.ay @template.name, :newline => false, :preset => :prompt
@@ -139,6 +176,6 @@ private
     S.ay Dir[File.join(@destination_path, '**/*')].count.to_s, :value
     S.ay 'Turpleated in:', :key
     S.ay (@interpolate.time * 1000).round(1).to_s + 'ms', :value
-    S.ay '=' * @@line_size, :prompt
+    S.ay '=' * CLI_LINE_LENGTH, :prompt
   end
 end

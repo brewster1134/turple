@@ -4,54 +4,28 @@ require 'find'
 require 'sourcerer'
 
 class Turple::Template
-  attr_accessor :path, :required_data, :configuration, :name
-
-  # character used to split a remote source from a template name
-  SOURCE_SPLITTER = '|'
+  SOURCE_TEMPLATE_SPLITTER = '##'
+  attr_accessor :configuration, :name, :path, :required_data
 
 private
 
   def initialize path, configuration
-    @path = get_path path
+    # @path = path
     @configuration = configuration
 
-    # validate template path
-    unless valid_path?
+    # validate configuration and path
+    valid_configuration?
+    unless valid_path? path
       if @configuration[:cli]
         prompt_for_path
       else
-        raise S.ay "Invalid Path `#{@path}`", :error
+        raise S.ay "Invalid Template Path `#{path}`", :error
       end
     end
-
-    # load template turplefile after validating path
-    Turple.load_turplefile File.join(@path, 'Turplefile')
-
-    # validate configuration after loading turplefile
-    valid_configuration?
 
     # set data variables after validating path and configuration
     @required_data = scan_for_data @path
     @name = Turple.turpleobject[:name] || File.basename(@path)
-  end
-
-  # process path for possible a remote source
-  # use Sourcerer to download source
-  #
-  # @param path [String] template path
-  # @return [String] valid path to local directory containing template
-  #
-  def get_path path
-    # detect a remote source
-    if path.include? SOURCE_SPLITTER
-      source_template = path.split SOURCE_SPLITTER
-      source = Sourcerer.new source_template[0]
-      template = source_template[1]
-
-      File.join(source.destination, template)
-    else
-      return File.expand_path path
-    end
   end
 
   # Scan a path and determine the required data needed to interpolate it
@@ -103,17 +77,43 @@ private
   # check that the path is a valid template
   # @return [Boolean]
   #
-  def valid_path?
-    File.exists?(@path) && File.exists?(File.join(@path, 'Turplefile'))
+  def valid_path? potential_path
+    # with source included in template path...
+    new_path = if potential_path.include? SOURCE_TEMPLATE_SPLITTER
+      # split source from template
+      source_template = potential_path.split SOURCE_TEMPLATE_SPLITTER
+
+      # create new source
+      begin
+        Turple::Source.new source_template[1], source_template[0]
+      rescue
+        return false
+      end
+
+      # look up template path from new source
+      Turple::Source.find_template_path source_template[1], source_template[1]
+
+    # if just the template name/path is passed...
+    else
+      # check for template name in existing sources or treat it as a local path
+      Turple::Source.find_template_path(potential_path) || File.expand_path(potential_path)
+    end
+
+    if !new_path.nil? && File.directory?(new_path) && File.file?(File.join(new_path, 'Turplefile'))
+      @path = new_path
+      return true
+    else
+      return false
+    end
   end
 
   # prompt the user for a template path until a vaid one is entered
   # @return [String] valid template path
   #
   def prompt_for_path
-    until valid_path?
+    until @path
       A.sk 'Enter a path to a Turple Template', :preset => :prompt, :readline => true do |response|
-        @path = File.expand_path response
+        valid_path? response
       end
     end
     @path

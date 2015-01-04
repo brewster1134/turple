@@ -1,27 +1,47 @@
+require 'recursive-open-struct'
+
 describe Turple do
   describe '#initialize' do
     before do
-      allow(Turple::Interpolate).to receive(:new).and_call_original
+      @template_path = File.join(ROOT_DIR, 'spec', 'fixtures', 'template')
 
-      template_path = File.join(ROOT_DIR, 'spec', 'fixtures', 'template')
-      # Turple.load_turplefile File.join(template_path, 'Turplefile')
-      configuration_hash = DEFAULT_CONFIGURATION.deep_merge({
-        :destination => File.join(Dir.mktmpdir, 'project')
-      })
-      data_hash = {
-        sub: {
-          :dir => 'subdir',
-          :file => 'subfile',
-          :empty => 'subempty'
-        },
-        :file_content => 'filecontent'
+      allow(Turple).to receive(:load_turplefile)
+      allow(Turple::Source).to receive(:new)
+      allow(Turple::Template).to receive(:new).and_return RecursiveOpenStruct.new({ :required_data => 'template_data' })
+      allow(Turple::Data).to receive(:new).and_return 'data'
+      allow(Turple::Interpolate).to receive(:new)
+
+      Turple.turpleobject = {
+        :destination => 'foo/destination',
+        :sources => {
+          :foo_source => 'foo/source/path'
+        }
       }
 
-      @turple = Turple.new template_path, data_hash, configuration_hash
+      @turple = Turple.new @template_path
+    end
+
+    after do
+      allow(Turple).to receive(:load_turplefile).and_call_original
+      allow(Turple::Source).to receive(:new).and_call_original
+      allow(Turple::Template).to receive(:new).and_call_original
+      allow(Turple::Data).to receive(:new).and_call_original
+      allow(Turple::Interpolate).to receive(:new).and_call_original
+    end
+
+    it 'should load the Turplefiles' do
+      expect(Turple).to have_received(:load_turplefile).with(File.join(File.expand_path('~'), 'Turplefile')).ordered
+      expect(Turple).to have_received(:load_turplefile).with(File.join(@template_path, 'Turplefile')).ordered
+      expect(Turple).to have_received(:load_turplefile).with(File.join(File.expand_path('foo/destination'), 'Turplefile')).ordered
     end
 
     it 'should initialize all components' do
-      expect(Turple::Interpolate).to have_received(:new).with instance_of(Turple::Template), instance_of(Turple::Data), instance_of(String)
+      expect(Turple::Interpolate).to have_received(:new).with instance_of(RecursiveOpenStruct), 'data', 'foo/destination'
+    end
+
+    it 'should create sources from Turplefile' do
+      expect(Turple::Source).to receive(:new).with :foo_source, 'foo/source/path'
+      turple = Turple.new 'foo/template/path'
     end
   end
 

@@ -1,27 +1,21 @@
-require 'cli_miami'
 require 'thor'
 
 class Turple::Cli < Thor
-  desc 'ate', 'Interpolate your template!'
-  option :template, :type => :string, :desc => 'Path to a turple template.'
-  option :destination, :type => :string, :default => File.join(Dir.pwd, 'turple'), :desc => 'Path to save interpolated template to.'
+  desc 'ate', 'Interpolate a template!'
+  option :template, :type => :string, :aliases => ['-t'], :desc => 'Path to, or name of, a turple template.'
+  option :destination, :type => :string, :aliases => ['-d'], :desc => 'Path to save interpolated template to.'
   def ate
-    destination = File.expand_path options['destination']
-
-    # load destination turplefile if it exists
-    Turple.load_turplefile File.join(destination, 'Turplefile')
-
     # update turpleobject object with cli options
     Turple.turpleobject = {
-      template: (options['template'] || Turple.template rescue nil),
+      template: options['template'] || Turple.template,
+      destination: options['destination'] || Turple.destination,
       configuration: {
-        destination: destination,
         cli: true
       }
     }
 
     # initialize turple
-    Turple.ate Turple.template, Turple.data, Turple.configuration
+    Turple.ate Turple.template
   end
 
   default_task :ate

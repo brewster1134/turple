@@ -75,7 +75,7 @@ RSpec.configure do |config|
   end
 end
 
-DEFAULT_CONFIGURATION = Turple.configuration
+DEFAULT_TURPLEOBJECT = Turple.turpleobject.clone
 ROOT_DIR = File.expand_path File.join(File.dirname(__FILE__), '..')
 
 class Object

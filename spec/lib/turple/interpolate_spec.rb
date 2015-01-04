@@ -4,39 +4,31 @@ require 'recursive-open-struct'
 
 describe Turple::Interpolate do
   before do
-    class InterpolateTemplate
-      def self.path
-        File.join(ROOT_DIR, 'spec', 'fixtures', 'template')
-      end
-      def self.configuration; DEFAULT_CONFIGURATION; end
-    end
+    # create mocks for template and data instances
+    @template = RecursiveOpenStruct.new({
+      :configuration => DEFAULT_TURPLEOBJECT[:configuration],
+      :path => File.join(ROOT_DIR, 'spec', 'fixtures', 'template')
+    })
 
-    class InterpolateData
-      def self.data
-        RecursiveOpenStruct.new({
-          :sub => {
-            :dir => 'subdir',
-            :file => 'subfile',
-            :empty => 'subempty'
-          },
-          :file_content => 'filecontent'
-        })
-      end
-    end
-
-    allow(Turple).to receive(:turpleobject).and_return({
-      :configuration => InterpolateTemplate.configuration,
-      :data => InterpolateData.data.to_hash,
-      :data_map => InterpolateData.data.to_hash
+    @data = RecursiveOpenStruct.new({
+      :data => {
+        :sub => {
+          :dir => 'subdir',
+          :file => 'subfile',
+          :empty => 'subempty'
+        },
+        :file_content => 'filecontent'
+      }
     })
 
     # create emtpy dir since they are ignored by git
-    FileUtils.mkdir_p File.join(InterpolateTemplate.path, 'subempty_[SUB.EMPTY]')
+    FileUtils.mkdir_p File.join(@template.path, 'subempty_[SUB.EMPTY]')
 
-    Turple.load_turplefile File.join(InterpolateTemplate.path, 'Turplefile')
+    # load the template Turplefile
+    Turple.load_turplefile File.join(@template.path, 'Turplefile')
 
     @destination = File.expand_path(File.join('tmp', 'project'))
-    @interpolate = Turple::Interpolate.new InterpolateTemplate, InterpolateData, @destination
+    @interpolate = Turple::Interpolate.new @template, @data, @destination
   end
 
   after do
@@ -72,10 +64,7 @@ EOS
   it 'should save a complete Turplefile' do
     new_turplefile = YAML.load(File.read(File.join(@interpolate.destination, 'Turplefile'))).deep_symbolize_keys
 
-    expect(new_turplefile[:template]).to eq InterpolateTemplate.path
-    expect(new_turplefile[:configuration]).to eq InterpolateTemplate.configuration
-    expect(new_turplefile[:data]).to eq InterpolateData.data.to_hash
-    expect(new_turplefile[:data_map]).to eq Turple.data_map
+    expect(new_turplefile[:template]).to eq @template.path
     expect(new_turplefile[:created_on]).to be_a String
   end
 end

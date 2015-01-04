@@ -12,7 +12,6 @@ Gem::Specification.new do |s|
   s.executables = ["turple"]
   s.add_runtime_dependency 'activesupport', '~> 4.1'
   s.add_runtime_dependency 'cli_miami', '~> 0.0'
-  s.add_runtime_dependency 'colorize', '~> 0.7'
   s.add_runtime_dependency 'coveralls', '~> 0.7'
   s.add_runtime_dependency 'recursive-open-struct', '~> 0.5'
   s.add_runtime_dependency 'sourcerer_', '~> 0.0'

@@ -1,45 +1,29 @@
-require 'recursive-open-struct'
-
 describe Turple::Template do
-  before do
-    allow(Turple).to receive(:load_turplefile)
-  end
-
-  after do
-    allow(Turple).to receive(:load_turplefile).and_call_original
-  end
-
-  context 'when a source is detected' do
+  context 'when a source is passed' do
     before do
-      allow_any_instance_of(Turple::Template).to receive(:valid_path?).and_return true
-      allow_any_instance_of(Turple::Template).to receive(:scan_for_data)
-      allow(Sourcerer).to receive(:new).and_return RecursiveOpenStruct.new({ :destination => '/path/to/source' })
+      allow(Turple::Source).to receive(:new)
+      allow(Turple::Source).to receive(:find_template_path)
 
-      @template = Turple::Template.new 'url|template', DEFAULT_CONFIGURATION
+      @template = Turple::Template.new('foo/bar##baz', DEFAULT_TURPLEOBJECT[:configuration]) rescue nil
     end
 
     after do
-      allow_any_instance_of(Turple::Template).to receive(:valid_path?).and_call_original
-      allow_any_instance_of(Turple::Template).to receive(:scan_for_data).and_call_original
-      allow(Sourcerer).to receive(:new).and_call_original
+      allow(Turple::Source).to receive(:new).and_call_original
+      allow(Turple::Source).to receive(:find_template_path).and_call_original
     end
 
-    it 'should download source' do
-      expect(Sourcerer).to have_received(:new).with 'url'
+    it 'should create a new source' do
+      expect(Turple::Source).to have_received(:new).with 'baz', 'foo/bar'
     end
 
-    it 'should set path to source path' do
-      expect(@template.path).to eq '/path/to/source/template'
+    it 'should search for the template from that source' do
+      expect(Turple::Source).to have_received(:find_template_path).with 'baz', 'baz'
     end
   end
 
   context 'with a valid configuration' do
     before do
-      @template = Turple::Template.new File.join(ROOT_DIR, 'spec', 'fixtures', 'template'), DEFAULT_CONFIGURATION
-    end
-
-    it 'should load turplefile at template root' do
-      expect(Turple).to have_received(:load_turplefile).with File.join(@template.path, 'Turplefile')
+      @template = Turple::Template.new File.join(ROOT_DIR, 'spec', 'fixtures', 'template'), DEFAULT_TURPLEOBJECT[:configuration]
     end
 
     it 'should collect required data' do
