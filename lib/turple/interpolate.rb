@@ -11,7 +11,7 @@ private
     @template = template.path
     @data = data.data
     @destination = destination
-    @configuration = template.configuration
+    @configuration = template.configuration.to_hash
     @tmp_dir = Dir.mktmpdir
     @project_name = File.basename @destination
 
