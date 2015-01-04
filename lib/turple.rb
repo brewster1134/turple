@@ -24,7 +24,7 @@ class Turple
 
     # default sources to download
     :sources => {
-      # :default => 'brewster1134/turple-templates'
+      :default => 'brewster1134/turple-templates'
     },
 
     # default destination
