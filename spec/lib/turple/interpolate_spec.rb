@@ -7,7 +7,8 @@ describe Turple::Interpolate do
     # create mocks for template and data instances
     @template = RecursiveOpenStruct.new({
       :configuration => DEFAULT_TURPLEOBJECT[:configuration],
-      :path => File.join(ROOT_DIR, 'spec', 'fixtures', 'template')
+      :path => File.join(ROOT_DIR, 'spec', 'fixtures', 'template'),
+      :original_path => 'original/path'
     })
 
     @data = RecursiveOpenStruct.new({
@@ -64,7 +65,7 @@ EOS
   it 'should save a complete Turplefile' do
     new_turplefile = YAML.load(File.read(File.join(@interpolate.destination, 'Turplefile'))).deep_symbolize_keys
 
-    expect(new_turplefile[:template]).to eq @template.path
+    expect(new_turplefile[:template]).to eq 'original/path'
     expect(new_turplefile[:created_on]).to be_a String
   end
 end

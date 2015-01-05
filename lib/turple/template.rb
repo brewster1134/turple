@@ -5,12 +5,12 @@ require 'sourcerer'
 
 class Turple::Template
   SOURCE_TEMPLATE_SPLITTER = '##'
-  attr_accessor :configuration, :name, :path, :required_data
+  attr_accessor :configuration, :name, :original_path, :path, :required_data
 
 private
 
   def initialize path, configuration
-    # @path = path
+    @original_path = path
     @configuration = configuration
 
     # validate configuration and path
@@ -99,6 +99,7 @@ private
       Turple::Source.find_template_path(potential_path) || File.expand_path(potential_path)
     end
 
+    # set path var if new path is a valid template
     if !new_path.nil? && File.directory?(new_path) && File.file?(File.join(new_path, 'Turplefile'))
       @path = new_path
       return true
@@ -116,7 +117,8 @@ private
         valid_path? response
       end
     end
-    @path
+
+    return @path
   end
 
   # check the configuration is valid

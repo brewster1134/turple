@@ -8,7 +8,7 @@ class Turple::Interpolate
 private
 
   def initialize template, data, destination
-    @template = template.path
+    @template = template
     @data = data.data
     @destination = destination
     @configuration = template.configuration.to_hash
@@ -36,9 +36,9 @@ private
   # Copy template to tmp dir and get the new path
   #
   def create_tmp_project!
-    FileUtils.cp_r @template, @tmp_dir
+    FileUtils.cp_r @template.path, @tmp_dir
 
-    @tmp_project = File.join(@tmp_dir, File.basename(@template))
+    @tmp_project = File.join(@tmp_dir, File.basename(@template.path))
   end
 
   # Collect paths to interpolate
@@ -145,7 +145,7 @@ private
     # get new template name based on the first directory of the destination
     turplefile_path = File.join(@destination, 'Turplefile')
     turplefile_object = Turple.turpleobject.deep_merge({
-      template: @template,
+      template: @template.original_path,
       :created_on => Date.today.to_s
     })
 
