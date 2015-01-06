@@ -160,19 +160,24 @@ private
   end
 
   def output_summary
-    S.ay '=' * CLI_LINE_LENGTH, :prompt
-    S.ay '!TURPLE SUCCESS!', :preset => :header
-    S.ay '=' * CLI_LINE_LENGTH, :prompt
+    S.ay '=' * (CLI_LINE_LENGTH / 2), :key
+    S.ay '=' * ((CLI_LINE_LENGTH / 2) - 1), :value
+    S.ay '!TURPLE ', :key
+    S.ay 'SUCCESS!', :value
+    S.ay '=' * (CLI_LINE_LENGTH / 2), :key
+    S.ay '=' * ((CLI_LINE_LENGTH / 2) - 1), :value
 
-    S.ay 'Turpleated ', :newline => false, :indent => 2
-    S.ay @template.name, :newline => false, :preset => :prompt
-    S.ay ' to a new project ', :newline => false
-    S.ay @interpolate.project_name, :preset => :prompt
+    S.ay 'Template', :key
+    S.ay @template.name, :value
+    S.ay 'Project', :key
+    S.ay @interpolate.project_name, :value
 
-    S.ay 'Paths Turpleated:', :key
+    S.ay 'Turpleated Paths:', :key
     S.ay Dir[File.join(@destination_path, '**/*')].count.to_s, :value
-    S.ay 'Turpleated in:', :key
+    S.ay 'Turpleated In:', :key
     S.ay (@interpolate.time * 1000).round(1).to_s + 'ms', :value
-    S.ay '=' * CLI_LINE_LENGTH, :prompt
+
+    S.ay '=' * (CLI_LINE_LENGTH / 2), :key
+    S.ay '=' * ((CLI_LINE_LENGTH / 2) - 1), :value
   end
 end

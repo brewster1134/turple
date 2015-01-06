@@ -5,12 +5,11 @@ require 'sourcerer'
 
 class Turple::Template
   SOURCE_TEMPLATE_SPLITTER = '##'
-  attr_accessor :configuration, :name, :original_path, :path, :required_data
+  attr_accessor :configuration, :name, :path, :required_data
 
 private
 
   def initialize path, configuration
-    @original_path = path
     @configuration = configuration
 
     # validate configuration and path

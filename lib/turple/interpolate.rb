@@ -145,7 +145,7 @@ private
     # get new template name based on the first directory of the destination
     turplefile_path = File.join(@destination, 'Turplefile')
     turplefile_object = Turple.turpleobject.deep_merge({
-      template: @template.original_path,
+      template: @template.name,
       :created_on => Date.today.to_s
     })
 

@@ -8,7 +8,7 @@ Gem::Specification.new do |s|
   s.license = 'MIT'
   s.name = 'turple'
   s.summary = 'Quick Project Templating'
-  s.version = '0.0.7'
+  s.version = '0.0.8'
   s.executables = ["turple"]
   s.required_ruby_version = '>= 1.9.3-p550'
   s.add_runtime_dependency 'activesupport', '~> 4.2'
