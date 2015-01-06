@@ -1,7 +1,7 @@
 describe Turple::Cli do
   describe '#ate' do
     before do
-      Turple.turpleobject = DEFAULT_TURPLEOBJECT
+      Turple.class_var :turpleobject, DEFAULT_TURPLEOBJECT
 
       allow(Turple).to receive(:ate)
       allow(Turple).to receive(:turpleobject=)
@@ -40,14 +40,18 @@ describe Turple::Cli do
 
     context 'when --destination is not passed' do
       it 'should initialize with a destination from pwd' do
-        expect(Turple).to receive(:turpleobject=).with hash_including({ :destination => File.join(Dir.pwd, 'turple') })
+        expect(Turple).to receive(:turpleobject=) do |object|
+          expect(object[:configuration][:destination]).to eq File.join(Dir.pwd, 'turple')
+        end
         Turple::Cli.start ['ate']
       end
     end
 
     context 'when --destination is passed' do
       it 'should initialize with passed value' do
-        expect(Turple).to receive(:turpleobject=).with hash_including({ :destination => 'user/destination' })
+        expect(Turple).to receive(:turpleobject=) do |object|
+          expect(object[:configuration][:destination]).to eq 'user/destination'
+        end
         Turple::Cli.start ['ate', '--destination', 'user/destination']
       end
     end

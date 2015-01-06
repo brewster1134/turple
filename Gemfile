@@ -1,6 +1,6 @@
 source 'https://rubygems.org'
 
-gem 'activesupport', '~> 4.1'
+gem 'activesupport', '~> 4.2'
 gem 'cli_miami', '~> 0.0'
 gem 'recursive-open-struct', '~> 0.5'
 gem 'sourcerer_', '~> 0.0', :require => 'sourcerer'

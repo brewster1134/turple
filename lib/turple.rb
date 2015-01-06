@@ -27,10 +27,10 @@ class Turple
       :default => 'brewster1134/turple-templates'
     },
 
-    # default destination
-    :destination => File.join(Dir.pwd, 'turple'),
-
     :configuration => {
+      # default destination
+      :destination => File.join(Dir.pwd, 'turple'),
+
       # default regex for file names to interpolate content of
       # matches files with an extension of `.turple`
       # (e.g. foo.txt.turple)
@@ -129,25 +129,22 @@ class Turple
 private
 
   def initialize template_path, data_hash = {}, configuration_hash = {}
-    data_hash = Turple.data.deep_merge data_hash
-    data_map_hash = Turple.data_map
-    configuration_hash = Turple.configuration.deep_merge configuration_hash
-    @destination_path = Turple.destination
-
-    # load Turplefiles in order...
-    # home, template, destination
-    [
-      '~',
-      template_path,
-      @destination_path
-    ].each do |path|
-      Turple.load_turplefile File.join(File.expand_path(path), 'Turplefile')
-    end
-
-    # create turplefile sources
+    # create sources
+    # load home & template turplefile first for possible additional sources
+    Turple.load_turplefile File.join(File.expand_path('~'), 'Turplefile')
+    Turple.load_turplefile File.join(File.expand_path(template_path), 'Turplefile')
     Turple.sources.each do |source_name, source_path|
       Turple::Source.new source_name, source_path
     end
+
+    # find the destination and load it's optional Turplefile
+    configuration_hash = Turple.configuration.deep_merge configuration_hash
+    @destination_path = configuration_hash[:destination]
+    Turple.load_turplefile File.join(File.expand_path(@destination_path), 'Turplefile')
+
+    # collect data
+    data_hash = Turple.data.deep_merge data_hash
+    data_map_hash = Turple.data_map
 
     if configuration_hash[:cli]
       S.ay 'Saving to: ', :preset => :prompt, :newline => false

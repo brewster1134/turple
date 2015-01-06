@@ -8,9 +8,10 @@ Gem::Specification.new do |s|
   s.license = 'MIT'
   s.name = 'turple'
   s.summary = 'Quick Project Templating'
-  s.version = '0.0.6'
+  s.version = '0.0.7'
   s.executables = ["turple"]
-  s.add_runtime_dependency 'activesupport', '~> 4.1'
+  s.required_ruby_version = '>= 1.9.3-p550'
+  s.add_runtime_dependency 'activesupport', '~> 4.2'
   s.add_runtime_dependency 'cli_miami', '~> 0.0'
   s.add_runtime_dependency 'recursive-open-struct', '~> 0.5'
   s.add_runtime_dependency 'sourcerer_', '~> 0.0'

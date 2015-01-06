@@ -8,9 +8,9 @@ class Turple::Cli < Thor
     # update turpleobject object with cli options
     Turple.turpleobject = {
       template: options['template'] || Turple.template,
-      destination: options['destination'] || Turple.destination,
       configuration: {
-        cli: true
+        cli: true,
+        destination: options['destination'] || Turple.configuration[:destination],
       }
     }
 

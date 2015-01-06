@@ -12,7 +12,9 @@ describe Turple do
       allow(Turple::Interpolate).to receive(:new)
 
       Turple.turpleobject = {
-        :destination => 'foo/destination',
+        :configuration => {
+          :destination => 'foo/destination',
+        },
         :sources => {
           :foo_source => 'foo/source/path'
         }

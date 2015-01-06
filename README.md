@@ -9,28 +9,30 @@ Turple can take a custom template and use it to bootstrap projects structures yo
 
 ### Usage
 
-I always make projects the same way.  There are a bunch of tools for making this faster, but i didnt like any of them.  This is what i like.
+I always make projects the same way. There are a bunch of tools for (supposedly) making this easier/faster, but I don't like any of them. They are either too opinionated or too limiting. This is what I like.
 
 Turple takes any kind of template format you want, a bunch of data, and in*turple*ates it.
 
-Turple is best used from a command line, but it can be used directly in ruby as well.  **CLI FIRST...**
+Turple is best used from a command line, but it can be used directly in ruby as well. **CLI FIRST...**
 
 ### CLI
 
-Turple requires a path to a template, and an optional destination.  If no destination is passed, it will put everything in a `turple` folder from your current working directory.
+Turple requires a path to a template, and an optional destination. If no destination is passed, it will put everything in a `turple` folder from your current working directory.
 
 ```sh
 turple --template /path/to/template --destination my_new_project_name
+
+# or with shorter aliases
+turple -t /path/to/template -d my_new_project_name
 ```
 
-Turple will scan the template, determine what data is needed to process it, and prompt you for any missing data.  If you wanted to run turple without the wizard, just throw a `Turplefile` into your destination directory with the nececssary data (even the template if you want)
+Turple will scan the template, determine what data is needed to process it, and prompt you for any missing data. If you wanted to run turple without the wizard, just throw a `Turplefile` into your destination directory with the necessary data.
 
 ### Turplefile
 
-`Turplefile` files are yaml formatted files that provided various information to turple.  Assuming our template requires a single peice of information called `foo`, our destination Turplefile would look something like this.
+`Turplefile` files are yaml formatted files that provided various information to turple. Assuming our template requires a single piece of information called `foo`, our destination Turplefile could look something like this.
 
 ```yaml
-template: /path/to/template
 data:
   foo: bar
 ```
@@ -39,20 +41,18 @@ Turple templates also have a Turplefile
 
 ### Turple Templates
 
-A turple template is simply a directory containing a Turplefile, and any amount of custom folders and files your project template needs.  The Turplefile inside a template has different data than a destination file.  It has instructions on how to prompt a user for data, and the configuration details on how the template is built.  _This example uses the default turple configuration._
+A turple template is simply a directory containing a Turplefile, and any amount of custom folders and files your project template needs. The Turplefile inside a template has different data than a destination file. It has instructions on how to prompt a user for data, and the configuration details on how the template is built. _This example uses the default turple configuration._
 
 ###### Remote Template
-You can easily share other user's templates by giving turple a remote source in addition to a template name.  This allows you to, for example, use templates stored in another user's github repo without having to clone or download it yourself.  Simply separate the source name from the template name with a pipe `|`. __You will need to use quotes around template names when using remote templates__
+You can easily use remote templates directly, or share other user's templates by passing turple a remote source in addition to a template name. Simply separate the source name from the template name with 2 hashes (`##`).
+
+Turple uses the [Sourcerer](https://github.com/brewster1134/sourcerer) gem to download remote sources to a tmp directory, so you can use any supported Sourcerer format *(including github shorthand!)*
 
 ```
-turple --template 'git@github.com:brewster1134/turple_templates.git|ruby_template'
+turple -t brewster1134/turple_templates##javascript
 ```
 
-Turple uses the [Sourcerer](https://github.com/brewster1134/sourcerer) gem to download remote sources to a tmp directory, which supports github shorthand...
-
-```
-turple --template 'brewster1134/turple_templates|ruby_template'
-```
+To customize a template, you can modify the configuration in a template's Turplefile
 
 ### Configuration
 
@@ -68,7 +68,7 @@ data_map:
   foo: What is the foo called?
 ```
 
-* `name` is just a friendly name for the template.  its optional. we can use the template directory name for that.
+* `name` is just a friendly name for the template. its optional. we can use the template directory name for that.
 * `configuration` has some very important details. (again, these are the defaults, so if your template does not have a custom configuration, it uses these values)
   * `file_ext` is the file extension turple looks for to tell it there is content inside the file that needs processed
   * `path_regex` this is a string representing a regex match to variable names
@@ -78,7 +78,7 @@ data_map:
 
 ## Example Template
 
-Say you design a template using teh turple default configuration, and you create a file structure like so...
+Say you design a template using the turple default configuration, and you create a file structure like so...
 ```
 foo_template
   |__ my_[FOO.BAR]_dir
@@ -125,7 +125,7 @@ Paths Turpleated: 2
 ```
 
 ### Ruby
-You can run turple directly in ruby if needed as well.  _This example matches the template from the above example._
+You can run turple directly in ruby if needed as well. _This example matches the template from the above example._
 
 ```ruby
 require 'turple'
