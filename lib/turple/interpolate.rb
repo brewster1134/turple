@@ -11,7 +11,7 @@ private
     @template = template
     @data = data.data
     @destination = destination
-    @configuration = template.configuration.to_hash
+    @configuration = Turple.configuration
     @tmp_dir = Dir.mktmpdir
     @project_name = File.basename @destination
 

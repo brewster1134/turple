@@ -18,10 +18,8 @@ private
       prompt_for_data missing_data
     end
 
-    # add provided data to turpleobject
-    Turple.turpleobject = {
-      :data => @provided_data
-    }
+    # update turpleobject with complete data
+    Turple.turpleobject = { :data => @provided_data }
   end
 
   # populate missing data map values to match required data

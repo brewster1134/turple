@@ -18,6 +18,7 @@ class Turple
 
   # Turple user configuration defaults
   @@turpleobject = {
+    :interactive => false,
     :template => '',
     :data => {},
     :data_map => {},
@@ -100,7 +101,8 @@ class Turple
   # allows helper accessors for turpleobject
   #
   def self.method_missing method
-    self.turpleobject[method] || super
+    value = self.turpleobject[method]
+    defined?(value) ? value : super
   end
 
   # Read yaml turplefile and add contents to the turpleobject
@@ -129,34 +131,43 @@ class Turple
 private
 
   def initialize template_path, data_hash = {}, configuration_hash = {}
-    # create sources
-    # load home & template turplefile first for possible additional sources
+    # load home turplefile
     Turple.load_turplefile File.join(File.expand_path('~'), 'Turplefile')
-    Turple.load_turplefile File.join(File.expand_path(template_path), 'Turplefile')
+
+    # create sources
     Turple.sources.each do |source_name, source_path|
       Turple::Source.new source_name, source_path
     end
 
-    # find the destination and load it's optional Turplefile
-    configuration_hash = Turple.configuration.deep_merge configuration_hash
-    @destination_path = configuration_hash[:destination]
-    Turple.load_turplefile File.join(File.expand_path(@destination_path), 'Turplefile')
+    # update turpleobject with initialized arguments
+    Turple.turpleobject = {
+      :template => template_path,
+      :data => data_hash,
+      :configuration => configuration_hash
+    }
+
+    # initialize template after sources are created
+    @template = Turple::Template.new template_path, Turple.interactive
+
+    # set destination and load Turplefile
+    @destination_path = File.expand_path Turple.configuration[:destination]
+    Turple.load_turplefile File.join(@destination_path, 'Turplefile')
 
     # collect data
     data_hash = Turple.data.deep_merge data_hash
     data_map_hash = Turple.data_map
+    configuration_hash = Turple.configuration.deep_merge configuration_hash
 
-    if configuration_hash[:cli]
+    if Turple.interactive
       S.ay 'Saving to: ', :preset => :prompt, :newline => false
       S.ay @destination_path
     end
 
     # Initialize components
-    @template = Turple::Template.new template_path, configuration_hash
     @data = Turple::Data.new @template.required_data, data_hash, data_map_hash
     @interpolate = Turple::Interpolate.new @template, @data, @destination_path
 
-    output_summary if configuration_hash[:cli]
+    output_summary if Turple.interactive
   end
 
   def output_summary

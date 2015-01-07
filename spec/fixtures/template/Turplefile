@@ -1,4 +1,3 @@
-name: Default Turple Configuration
 configuration:
   file_ext: turple
   path_regex: '\[([A-Z_\.]+)\]'

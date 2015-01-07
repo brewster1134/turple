@@ -5,17 +5,14 @@ class Turple::Cli < Thor
   option :template, :type => :string, :aliases => ['-t'], :desc => 'Path to, or name of, a turple template.'
   option :destination, :type => :string, :aliases => ['-d'], :desc => 'Path to save interpolated template to.'
   def ate
-    # update turpleobject object with cli options
-    Turple.turpleobject = {
-      template: options['template'] || Turple.template,
-      configuration: {
-        cli: true,
-        destination: options['destination'] || Turple.configuration[:destination],
-      }
-    }
+    # enable interactive mode
+    Turple.turpleobject = { :interactive => true }
+
+    # dont pass a nil destination
+    configuration_hash = options['destination'] ? { :destination => options['destination'] } : {}
 
     # initialize turple
-    Turple.ate Turple.template
+    Turple.ate options['template'], {}, configuration_hash
   end
 
   default_task :ate

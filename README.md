@@ -7,6 +7,22 @@ Quick project templating, with optional cli wizard support
 
 Turple can take a custom template and use it to bootstrap projects structures you commonly use instead of **copy/pasting** an old project and **find/replacing** to make it a new project.
 
+### Install
+```sh
+gem install turple
+```
+
+Optionally you can create a `Turplefile` in your home directory *(~/Turplefile)* and include your own custom sources, and even common template data. This will prevent you from having to define your sources everytime you create a new project.
+
+```yaml
+sources:
+  my_remote_source: my_github_user/turple-templates
+  my_local_source: ~/Documents/turple-templates
+data:
+  developer:
+    name: Jane Doe
+```
+
 ### Usage
 
 I always make projects the same way. There are a bunch of tools for (supposedly) making this easier/faster, but I don't like any of them. They are either too opinionated or too limiting. This is what I like.
@@ -17,7 +33,7 @@ Turple is best used from a command line, but it can be used directly in ruby as 
 
 ### CLI
 
-Turple requires a path to a template, and an optional destination. If no destination is passed, it will put everything in a `turple` folder from your current working directory.
+Turple requires a path to a template, and an optional destination. If no destination is passed, it will put everything in a `turple` folder in your current working directory.
 
 ```sh
 turple --template /path/to/template --destination my_new_project_name
@@ -26,18 +42,23 @@ turple --template /path/to/template --destination my_new_project_name
 turple -t /path/to/template -d my_new_project_name
 ```
 
-Turple will scan the template, determine what data is needed to process it, and prompt you for any missing data. If you wanted to run turple without the wizard, just throw a `Turplefile` into your destination directory with the necessary data.
-
-### Turplefile
-
-`Turplefile` files are yaml formatted files that provided various information to turple. Assuming our template requires a single piece of information called `foo`, our destination Turplefile could look something like this.
+Turple will scan the template, determine what data is needed to process it, and prompt you for any missing data. If you wanted to run turple without the wizard, just put a `Turplefile` into your destination directory with the necessary data. Assuming our template requires a single piece of information called `foo`, our destination Turplefile could look something like this.
 
 ```yaml
 data:
   foo: bar
 ```
 
-Turple templates also have a Turplefile
+### Turplefile
+
+`Turplefile` files are yaml formatted files that provided various information to turple.  Turple checks in multiple locations for a Turplefile.
+
+* Home Directory *(~/Turplefile)*
+  * Define your own custom defaults...  Set your sources, preferred template configuration, and even common template data *(e.g. developer.name)*
+* Template
+  * Templates require a Turplefile with a configuration *(esp if different from the turple defaults)* and an optional data map for use with the wizard.
+* Destination
+  * This file can have preset data (good for bypassing the wizard)
 
 ### Turple Templates
 
