@@ -3,7 +3,7 @@ Gem::Specification.new do |s|
   s.author = 'Ryan Brewster'
   s.date = '2014-12-23'
   s.email = 'brewster1134@gmail.com'
-  s.files = ["Gemfile", "Gemfile.lock", "Guardfile", "README.md", "bin/turple", "lib/turple.rb", "lib/turple/cli.rb", "lib/turple/data.rb", "lib/turple/interpolate.rb", "lib/turple/source.rb", "lib/turple/template.rb", "yuyi_menu", ".gitignore", ".rspec", ".travis.yml"]
+  s.files = ["Gemfile", "Gemfile.lock", "Guardfile", "README.md", "bin/turple", "lib/turple.rb", "lib/turple/cli.rb", "lib/turple/data.rb", "lib/turple/interpolate.rb", "lib/turple/source.rb", "lib/turple/template.rb", "Yuyifile", ".gitignore", ".rspec", ".travis.yml"]
   s.homepage = 'https://github.com/brewster1134/turple'
   s.license = 'MIT'
   s.name = 'turple'

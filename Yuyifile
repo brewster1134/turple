@@ -4,5 +4,6 @@ rolls:
   bundler:
   ruby:
     versions:
-      - 2.1.2
+      - 1.9.3-p550
+      - 2.0.0-p0
   ruby_gems:

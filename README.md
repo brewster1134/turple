@@ -183,7 +183,7 @@ most notably the passing of the destination in the 3rd argument _(the configurat
 
 ```shell
 gem install yuyi
-yuyi -m https://raw.githubusercontent.com/brewster1134/turple/master/yuyi_menu
+yuyi -m https://raw.githubusercontent.com/brewster1134/turple/master/Yuyifile
 bundle install
 bundle exec guard
 ```
