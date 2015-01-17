@@ -110,13 +110,21 @@ class Turple
   # @param file [String] relative/absolute path to a turplefile
   # @return [Hash]
   #
-  def self.load_turplefile turplefile_path
+  def self.load_turplefile turplefile_path, update_turpleobject = true
     turplefile_path = File.expand_path turplefile_path
 
     # return false if file doesnt exist
     return false unless File.exists? turplefile_path
 
-    self.turpleobject = YAML.load File.read turplefile_path
+    # read turplefile to ruby object
+    turplefile_data = YAML.load File.read turplefile_path
+
+    # update the turpleobject, or return a symbolized hash
+    if update_turpleobject
+      self.turpleobject = turplefile_data
+    else
+      turplefile_data.deep_symbolize_keys
+    end
   end
 
   # Add additional data to the collective turplefile
@@ -133,6 +141,18 @@ private
   def initialize template_path, data_hash = {}, configuration_hash = {}
     # load home turplefile
     Turple.load_turplefile File.join(File.expand_path('~'), 'Turplefile')
+
+    # check if template path is an interpolated project
+    template_turplefile = Turple.load_turplefile(File.join(template_path, 'Turplefile'), false)
+    if template_turplefile && template_turplefile[:created_on]
+      # use the project template
+      template_path = template_turplefile[:template]
+
+      # load the project sources
+      Turple.turpleobject = {
+        :sources => template_turplefile[:sources]
+      }
+    end
 
     # create sources
     Turple.sources.each do |source_name, source_path|

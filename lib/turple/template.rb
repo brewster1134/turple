@@ -32,7 +32,7 @@ private
     valid_configuration? Turple.configuration
 
     # set variables after validating path
-    @name = File.basename @path
+    @name = template
     @required_data = scan_for_data @path
   end
 

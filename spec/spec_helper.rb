@@ -75,9 +75,6 @@ RSpec.configure do |config|
   end
 end
 
-DEFAULT_TURPLEOBJECT = Turple.turpleobject.clone
-ROOT_DIR = File.expand_path File.join(File.dirname(__FILE__), '..')
-
 class Object
   def class_var var, value = nil
     if value
@@ -95,3 +92,6 @@ class Object
     end
   end
 end
+
+DEFAULT_TURPLEOBJECT = Turple.class_var(:turpleobject).dup
+ROOT_DIR = File.expand_path File.join(File.dirname(__FILE__), '..')

@@ -1,0 +1,25 @@
+---
+interactive: true
+template: template
+data:
+  sub:
+    dir: subdir
+    file: subfile
+    empty: subempty
+  file_content: filecontent
+data_map:
+  sub:
+    dir: What is the subdir
+    file: What is the subfile
+    empty: What is the subempty
+  file_content: What is the filecontent
+sources:
+  spec: spec/fixtures
+configuration:
+  destination: spec/fixtures/project
+  file_ext: turple
+  path_regex: \[([A-Z_\.]+)\]
+  path_separator: .
+  content_regex: <>([a-z_\.]+)<>
+  content_separator: .
+created_on: '2015-01-09'

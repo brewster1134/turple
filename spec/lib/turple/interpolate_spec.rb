@@ -28,7 +28,7 @@ describe Turple::Interpolate do
     # load the template Turplefile
     Turple.load_turplefile File.join(@template.path, 'Turplefile')
 
-    @destination = File.expand_path(File.join('tmp', 'project'))
+    @destination = File.join(ROOT_DIR, 'tmp', 'project')
     @interpolate = Turple::Interpolate.new @template, @data, @destination
   end
 

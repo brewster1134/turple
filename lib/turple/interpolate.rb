@@ -65,7 +65,7 @@ private
   #
   def process_path! path
     # start the new_path out matching the original path
-    new_path = path.dup
+    new_path = path.clone
 
     # interpolate file contents
     file_ext_regex = /\.#{Regexp.escape(@configuration[:file_ext])}$/

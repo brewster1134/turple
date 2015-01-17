@@ -3,11 +3,13 @@
 [![Coverage Status](https://coveralls.io/repos/brewster1134/turple/badge.png)](https://coveralls.io/r/brewster1134/turple)
 
 # Turple
+
 Quick project templating, with optional cli wizard support
 
 Turple can take a custom template and use it to bootstrap projects structures you commonly use instead of **copy/pasting** an old project and **find/replacing** to make it a new project.
 
 ### Install
+
 ```sh
 gem install turple
 ```
@@ -35,14 +37,9 @@ Turple is best used from a command line, but it can be used directly in ruby as 
 
 Turple requires a path to a template, and an optional destination. If no destination is passed, it will put everything in a `turple` folder in your current working directory.
 
-```sh
-turple --template /path/to/template --destination my_new_project_name
+Turple will scan the template, determine what data is needed to process it, and prompt you for any missing data. If you wanted to run turple without the wizard, you can put a `Turplefile` in your destination directory with the necessary data.
 
-# or with shorter aliases
-turple -t /path/to/template -d my_new_project_name
-```
-
-Turple will scan the template, determine what data is needed to process it, and prompt you for any missing data. If you wanted to run turple without the wizard, just put a `Turplefile` into your destination directory with the necessary data. Assuming our template requires a single piece of information called `foo`, our destination Turplefile could look something like this.
+e.g. Assuming our template requires a single piece of information called `foo`, a Turplefile in your new project directory could look something like this.
 
 ```yaml
 data:
@@ -65,20 +62,34 @@ data:
 A turple template is simply a directory containing a Turplefile, and any amount of custom folders and files your project template needs. The Turplefile inside a template has different data than a destination file. It has instructions on how to prompt a user for data, and the configuration details on how the template is built. _This example uses the default turple configuration._
 
 ###### Remote Template
+
 You can easily use remote templates directly, or share other user's templates by passing turple a remote source in addition to a template name. Simply separate the source name from the template name with 2 hashes (`##`).
 
 Turple uses the [Sourcerer](https://github.com/brewster1134/sourcerer) gem to download remote sources to a tmp directory, so you can use any supported Sourcerer format *(including github shorthand!)*
 
-```
-turple -t brewster1134/turple_templates##javascript
-```
+```sh
+# local template
+turple --template /path/to/template --destination new_project_name
 
-To customize a template, you can modify the configuration in a template's Turplefile
+# local template with shorter aliases
+turple -t /path/to/template -d new_project_name
+
+# remote template (with source and template)
+turple -t brewster1134/turple_templates##javascript
+
+# remote template (with just template)
+# this requires the source be loaded in your home Turplefile
+turple -t javascript
+
+# already turple'd project
+turple -t my_old_project_name -d new_project_name
+```
 
 ### Configuration
 
+A Turple template requires a Turplefile the defines the template's configuration.  It can also include a data map that describes all the data a template requires.
+
 ```yaml
-name: Foo Project Template
 configuration:
   file_ext: turple
   path_regex: '\[([A-Z_\.]+)\]'
@@ -87,19 +98,21 @@ configuration:
   content_separator: .
 data_map:
   foo: What is the foo called?
+  bar: The name of the bar.
 ```
 
-* `name` is just a friendly name for the template. its optional. we can use the template directory name for that.
 * `configuration` has some very important details. (again, these are the defaults, so if your template does not have a custom configuration, it uses these values)
   * `file_ext` is the file extension turple looks for to tell it there is content inside the file that needs processed
   * `path_regex` this is a string representing a regex match to variable names
   * `path_separator` this is a string representing a character(s) to seperate variables strung togehter
   * `content_regex` & `content_separator` are the same as with a path, but to match file contents rather than a path.
 * `data_map` is a hash that matches the same structure as the data required for a template, but instead provides the details to prompt a user in case a peice of required data is missing.
+  * data_map entries will be displayed with a prompt to enter missing data.  you can pose a data map entry in the form of a question, or just a description of the data.
 
 ## Example Template
 
 Say you design a template using the turple default configuration, and you create a file structure like so...
+
 ```
 foo_template
   |__ my_[FOO.BAR]_dir
@@ -110,13 +123,14 @@ foo_template
 ```
 
 and say your `my_[FOO.BAZ]_file.txt.turple` file contains the following
+
 ```
 This <>foo.baz<> file is in the <>foo.bar<> folder.
 ```
 
 With a simple Turplefile containing...
+
 ```
-name: Foo Template
 data_map:
   foo:
     bar: What is the foo bar?
@@ -128,7 +142,8 @@ data_map:
 * Notice how the content variables match the `content_regex`
 * Notice how the separator of the content variables match the `content_separator`
 
-**Let's run Turple!**
+**Now let's run Turple!**
+
 ```sh
 Saving to: /your/current/directory/turple
 There is some missing data. You will be prompted to enter each value.
@@ -146,6 +161,7 @@ Paths Turpleated: 2
 ```
 
 ### Ruby
+
 You can run turple directly in ruby if needed as well. _This example matches the template from the above example._
 
 ```ruby
@@ -164,6 +180,7 @@ Turple.ate '~/Code/templates/mini_ruby_project', {
 most notably the passing of the destination in the 3rd argument _(the configuration hash)_
 
 ### Development & Testing
+
 ```shell
 gem install yuyi
 yuyi -m https://raw.githubusercontent.com/brewster1134/turple/master/yuyi_menu

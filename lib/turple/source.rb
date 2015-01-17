@@ -33,7 +33,8 @@ private
     @template_paths = {}
     @source = Sourcerer.new(source_path)
 
-    add_templates @source.destination
+    # after source is created
+    add_templates @source
 
     # add new source to hash
     @@sources[source_name] = self
@@ -41,10 +42,10 @@ private
 
   # search through source and add any directory with a Turplefile as a turple template
   #
-  # @param source_path [String] a path to a source.  this will be a generated tmp dir from Sourcerer
+  # @param source [Sourcerer] A Sourcerer instance object
   #
-  def add_templates source_path
-    @source.files('**/Turplefile').each do |turplefile_path|
+  def add_templates source
+    source.files('**/Turplefile').each do |turplefile_path|
       template_path = File.dirname(turplefile_path)
       template_name = File.basename(template_path)
 
