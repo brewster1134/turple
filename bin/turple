@@ -1,7 +1,4 @@
 #!/usr/bin/env ruby
-
-$: << File.expand_path(File.join(File.dirname(__FILE__), '..', 'lib'))
-
-require 'turple'
-
+$LOAD_PATH << File.expand_path(File.join(__dir__, '..', 'lib'))
+require 'turple/cli'
 Turple::Cli.start ARGV

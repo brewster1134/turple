@@ -1,0 +1,33 @@
+en: &en
+  turple:
+    cli:
+      ate:
+        desc: inTurple.ate a template!
+        source:
+          desc: A valid source location that contains turple templates
+        template:
+          desc: A valid template name
+        project:
+          desc: A local path to save your turple'd template to
+      help:
+        desc: List all commands, or show details for a specific one
+      version:
+        desc: Show the currently installed turple version
+      ask_user_for_source_or_template:
+        prompt: Choose the `template` option if the template you need is already loaded, otherwise choose to add a new source that has the template you need.
+        source: Add a new source
+        template: Choose an existing template
+      ask_user_for_source:
+        prompt: Enter the location of a new Turple source
+    error:
+      source:
+        already_exists: "A source named %{source_name} already exists"
+
+    project:
+      default_name: "%{template_name}-turple-project"
+
+# regional variations
+en_gb:
+  <<: *en
+en_us:
+  <<: *en

@@ -1,4 +1,6 @@
-.ruby-version
+.bundle
+.DS_Store
 .yardoc
+*.gem
 coverage
 tmp
