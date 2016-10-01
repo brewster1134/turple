@@ -27,7 +27,7 @@ RSpec.configure do |config|
   # Print the 10 slowest examples and example groups at the
   # end of the spec run, to help surface which specs are running
   # particularly slow.
-  config.profile_examples = 10
+  config.profile_examples = 5
 
   # Run specs in random order to surface order dependencies. If you find an
   # order dependency and want to debug it, you can fix the order by providing
@@ -65,33 +65,12 @@ RSpec.configure do |config|
   end
 
   config.before do
-    allow(A).to receive(:sk)
-    allow(S).to receive(:ay)
+    allow(CliMiami::S).to receive(:ay)
+    allow(CliMiami::A).to receive(:sk)
   end
 
   config.after do
-    allow(A).to receive(:sk).and_call_original
-    allow(S).to receive(:ay).and_call_original
+    allow(CliMiami::S).to receive(:ay).and_call_original
+    allow(CliMiami::A).to receive(:sk).and_call_original
   end
 end
-
-class Object
-  def class_var var, value = nil
-    if value
-      self.send(:class_variable_set, :"@@#{var}", value)
-    else
-      self.send(:class_variable_get, :"@@#{var}")
-    end
-  end
-
-  def instance_var var, value = nil
-    if value
-      self.send(:instance_variable_set, :"@#{var}", value)
-    else
-      self.send(:instance_variable_get, :"@#{var}")
-    end
-  end
-end
-
-DEFAULT_TURPLEOBJECT = Turple.class_var(:turpleobject).dup
-ROOT_DIR = File.expand_path File.join(File.dirname(__FILE__), '..')

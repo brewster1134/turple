@@ -3,12 +3,6 @@ en: &en
     cli:
       ate:
         desc: inTurple.ate a template!
-        source:
-          desc: A valid source location that contains turple templates
-        template:
-          desc: A valid template name
-        project:
-          desc: A local path to save your turple'd template to
       help:
         desc: List all commands, or show details for a specific one
       version:
@@ -19,12 +13,11 @@ en: &en
         template: Choose an existing template
       ask_user_for_source:
         prompt: Enter the location of a new Turple source
-    error:
-      source:
-        already_exists: "A source named %{source_name} already exists"
-
-    project:
-      default_name: "%{template_name}-turple-project"
+      ask_user_for_template:
+        prompt: Choose an existing template
+        template: "Source: %{source_name}, Template:  %{template_name}"
+      ask_user_for_project:
+        prompt: Enter a path to the project you want to create
 
 # regional variations
 en_gb:

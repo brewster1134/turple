@@ -291,4 +291,27 @@ describe Turple::Cli do
       expect(@data).to eq @completed_data
     end
   end
+
+  describe '.ask_user_for_data_from_description' do
+    before do
+      allow(@cli).to receive(:ask_user_for_data_from_description).and_call_original
+
+      allow(@ask_instance).to receive(:value).and_return '', 'John'
+
+      @cli_method_calls = []
+      allow(CliMiami::A).to receive(:sk) do |arg|
+        @cli_method_calls << arg
+      end.and_return @ask_instance
+
+      @value = @cli.ask_user_for_data_from_description 'Name'
+    end
+
+    it 'should prompt user for a value' do
+      expect(@cli_method_calls).to eq ['Name', 'Name']
+    end
+
+    it 'should return the users value' do
+      expect(@value).to eq 'John'
+    end
+  end
 end

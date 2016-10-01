@@ -1,23 +1,15 @@
+#
+# Turple::Cli
+# Handles CLI methods and interactively collecting information from the user
+# @see help Run `turple help` from the command line
+#
 # dependencies
-require 'active_support/core_ext/object/deep_dup'
 require 'active_support/inflector'
 require 'i18n'
 require 'cli_miami/global'
 require 'thor'
-
-# turple library
 require 'turple'
-# require 'turple/cli/data'
-# require 'turple/cli/project'
-# require 'turple/cli/source'
-# require 'turple/cli/template'
-require 'turple/version'
 
-#
-# Turple::Cli
-# Collects user information and initializes Turple
-# @see help Run `turple help` from the command line
-#
 class Turple::Cli < Thor
   desc 'ate', I18n.t('turple.cli.ate.desc')
   # @!visibility private
@@ -46,36 +38,11 @@ class Turple::Cli < Thor
   end
 
   no_commands do
-    # INIT VENDORED LIBRARIES
-    #
-    CliMiami.set_preset :turple_error, {
-      color: :red,
-      style: :bold
-    }
-    CliMiami.set_preset :turple_prompt, {
-      color: :blue,
-      style: :bright
-    }
-    CliMiami.set_preset :turple_key, {
-      color: :blue,
-      justify: :rjust,
-      newline: false,
-      padding: 40,
-      preset: :prompt,
-      style: :bright
-    }
-    CliMiami.set_preset :turple_value, {
-      indent: 1
-    }
-
-    #
-    # USER METHODS
-    #
     # ASK METHODS
     #
 
     # Ask the user to choose a template, or enter new sources
-    # @return Turple::Template
+    # @return [Turple::Template]
     #
     def ask_user_for_source_or_template
       template = nil
@@ -108,7 +75,7 @@ class Turple::Cli < Thor
     end
 
     # Prompt user to enter a new source location
-    # @return Turple::Source
+    # @return [Turple::Source]
     #
     def ask_user_for_source
       source = nil
@@ -127,7 +94,7 @@ class Turple::Cli < Thor
     end
 
     # Prompt user to select an existing template
-    # @return Turple::Template
+    # @return [Turple::Template]
     #
     def ask_user_for_template
       template = nil
@@ -163,7 +130,7 @@ class Turple::Cli < Thor
     end
 
     # Prompt user for the new project location
-    # @return Turple::Project
+    # @return [Turple::Project]
     #
     def ask_user_for_project
       project = nil
@@ -181,10 +148,10 @@ class Turple::Cli < Thor
       return project
     end
 
-    # Prompt user for the required data
-    # @param Turple::Template
-    # @param Turple::Project
-    # @return Hash
+    # Collect data needed to prompt the user for missing data
+    # @param template [Turple::Template] The template being used
+    # @param project [Turple::Project] The project being used
+    # @return [Hash]
     #
     def ask_user_for_data template, project
       required_data = template.required_data
@@ -194,6 +161,13 @@ class Turple::Cli < Thor
       ask_user_for_data_from_hash required_data, required_data_descriptions, existing_data
     end
 
+    # Process data and lookup descriptions of missing data
+    # @param required_data [Hash] All required data for template
+    # @param required_data_descriptions [Hash] Mirrored hash of required data with descriptions of values
+    # @param existing_data [Hash] Any data already set on the project
+    # @param parent_keys [Array] Array of keys used for a back up description
+    # @param [Hash] The entered users data mirroring the required data object
+    #
     def ask_user_for_data_from_hash required_data, required_data_descriptions, existing_data, parent_keys = []
       # ensure an empty hash
       required_data_descriptions ||= {}
@@ -222,8 +196,18 @@ class Turple::Cli < Thor
       end
     end
 
+    # Prompt user for a single value
+    # @param description [String] Text telling the user what to enter
+    # @return [String] The user's entered value
+    #
     def ask_user_for_data_from_description description
+      value = nil
 
+      until !value.nil? && !value.empty?
+        value = CliMiami::A.sk(description).value
+      end
+
+      return value
     end
 
     # SHOW METHODS
