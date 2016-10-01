@@ -8,49 +8,37 @@ describe Turple::Cli do
     @cli = Turple::Cli.new
     @ask_instance = instance_double CliMiami::A
     @source_instance = instance_double Turple::Source
-    @template_instance = instance_double Turple::Template
     @project_instance = instance_double Turple::Project
-    @data_instance = instance_double Turple::Data
+    @template_instance = instance_double Turple::Template
 
-    allow(@cli).to receive(:ask_user_for_data).and_return @data_instance
     allow(@cli).to receive(:ask_user_for_project).and_return @project_instance
     allow(@cli).to receive(:ask_user_for_source_or_template).and_return @template_instance
     allow(@cli).to receive(:ask_user_for_source).and_return @source_instance
     allow(@cli).to receive(:ask_user_for_template).and_return Turple::Template.allocate
+    allow(@cli).to receive(:ask_user_for_data).and_return Hash.new
     allow(@cli).to receive(:show_user_templates)
+    allow(@project_instance).to receive(:apply_data)
     allow(@source_instance).to receive(:name).and_return 'Source Name'
     allow(@source_instance).to receive(:templates).and_return [Turple::Template.allocate]
-    allow(@template_instance).to receive(:source).and_return @source_instance
 
+    allow_any_instance_of(Turple::Template).to receive(:name).and_return 'Template Name'
     allow(CliMiami::A).to receive(:sk).and_return @ask_instance
     allow(Turple::Core).to receive(:new)
-    allow(Turple::Core).to receive(:project).and_return @project_instance
-    allow(Turple::Core).to receive(:template).and_return @template_instance
+    allow(Turple::Project).to receive(:new).and_return Turple::Project.allocate
     allow(Turple::Source).to receive(:all).and_return [@source_instance]
     allow(Turple::Source).to receive(:new).and_return Turple::Source.allocate
-    allow_any_instance_of(Turple::Template).to receive(:name).and_return 'Template Name'
   end
 
   #
   # TEARDOWN
   #
-  after :each do
-    allow(@cli).to receive(:ask_user_for_data).and_call_original
-    allow(@cli).to receive(:ask_user_for_project).and_call_original
-    allow(@cli).to receive(:ask_user_for_source_or_template).and_call_original
-    allow(@cli).to receive(:ask_user_for_source).and_call_original
-    allow(@cli).to receive(:ask_user_for_template).and_call_original
-    allow(@cli).to receive(:show_user_templates).and_call_original
-  end
-
   after do
+    allow_any_instance_of(Turple::Template).to receive(:name).and_call_original
     allow(CliMiami::A).to receive(:sk).and_call_original
     allow(Turple::Core).to receive(:new).and_call_original
-    allow(Turple::Core).to receive(:project).and_call_original
-    allow(Turple::Core).to receive(:template).and_call_original
+    allow(Turple::Project).to receive(:new).and_call_original
     allow(Turple::Source).to receive(:all).and_call_original
     allow(Turple::Source).to receive(:new).and_call_original
-    allow_any_instance_of(Turple::Template).to receive(:name).and_call_original
   end
 
   #
@@ -66,11 +54,10 @@ describe Turple::Cli do
       expect(@cli).to have_received(:ask_user_for_source_or_template).ordered
       expect(@cli).to have_received(:ask_user_for_project).ordered
       expect(@cli).to have_received(:ask_user_for_data).with(@template_instance, @project_instance).ordered
+      expect(@project_instance).to have_received(:apply_data).ordered
       expect(Turple::Core).to have_received(:new).with({
-        source: @source_instance,
         template: @template_instance,
-        project: @project_instance,
-        data: @data_instance
+        project: @project_instance
       }).ordered
     end
   end
@@ -312,6 +299,44 @@ describe Turple::Cli do
 
     it 'should return the users value' do
       expect(@value).to eq 'John'
+    end
+  end
+
+  describe '.show_user_templates' do
+    before do
+      allow(@cli).to receive(:show_user_templates).and_call_original
+
+      allow(Turple::Source).to receive(:all).and_return([
+        @source_instance,
+        @source_instance
+      ])
+
+      allow(@source_instance).to receive(:name).and_return 'source_one', 'source_two'
+
+      allow(@source_instance).to receive(:templates).and_return([
+        @template_instance,
+        @template_instance
+      ])
+
+      allow(@template_instance).to receive(:name).and_return 'template_one', 'template_two', 'template_three', 'template_four'
+
+      @cli_user_output = []
+      allow(CliMiami::S).to receive(:ay) do |arg|
+        @cli_user_output << arg
+      end
+
+      @cli.show_user_templates
+    end
+
+    it 'should show all templates from all sources' do
+      expect(@cli_user_output).to eq([
+        'source_one',
+        'source_one#template_one',
+        'source_one#template_two',
+        'source_two',
+        'source_two#template_three',
+        'source_two#template_four',
+      ])
     end
   end
 end

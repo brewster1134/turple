@@ -3,7 +3,7 @@
 # Handles CLI methods and interactively collecting information from the user
 # @see help Run `turple help` from the command line
 #
-# dependencies
+# Dependencies
 require 'active_support/inflector'
 require 'i18n'
 require 'cli_miami/global'
@@ -19,8 +19,11 @@ class Turple::Cli < Thor
     project = self.ask_user_for_project
     data = self.ask_user_for_data template, project
 
+    # Apply user data to the project
+    project.apply_data data
+
     # Start turple with valid data
-    Turple::Core.new source: template.source, template: template, project: project, data: data
+    Turple::Core.new template: template, project: project
   end
   default_task :ate
 
@@ -216,6 +219,14 @@ class Turple::Cli < Thor
     # Show user all templates from all sources
     #
     def show_user_templates
+      Turple::Source.all.each do |source|
+        source_name = source.name
+        CliMiami::S.ay source_name
+
+        source.templates.each do |template|
+          CliMiami::S.ay "#{source_name}##{template.name}"
+        end
+      end
     end
   end
 end
