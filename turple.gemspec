@@ -1,6 +1,7 @@
 # coding: utf-8
+$LOAD_PATH << File.expand_path('../lib', __FILE__)
 require 'date'
-require_relative 'lib/turple/version'
+require 'turple/version'
 
 Gem::Specification.new do |s|
   s.author      = 'Ryan Brewster'
@@ -15,9 +16,9 @@ Gem::Specification.new do |s|
   s.test_files  = Dir['spec/**/*']
   s.version     = Turple::VERSION
 
-  s.required_ruby_version = Gem::Requirement.new '>= 2.0.0p247'
+  s.required_ruby_version = Gem::Requirement.new '>= 2.0.0-p247'
 
-  s.add_runtime_dependency 'activesupport'
+  s.add_runtime_dependency 'activesupport', '4.2.7.1'
   s.add_runtime_dependency 'cli_miami', '~> 1.0.6.pre'
   s.add_runtime_dependency 'i18n'
   s.add_runtime_dependency 'recursive-open-struct'
@@ -28,7 +29,9 @@ Gem::Specification.new do |s|
   s.add_development_dependency 'guard-bundler'
   s.add_development_dependency 'guard-rubocop'
   s.add_development_dependency 'guard-rspec'
+  s.add_development_dependency 'listen', '3.0.8'
   s.add_development_dependency 'rspec'
+  s.add_development_dependency 'ruby_dep', '1.3.1'
   s.add_development_dependency 'terminal-notifier'
   s.add_development_dependency 'terminal-notifier-guard'
   s.add_development_dependency 'yard'

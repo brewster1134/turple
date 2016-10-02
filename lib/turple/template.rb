@@ -1,13 +1,105 @@
 class Turple::Template
+  def initialize path
+  end
+
   def name
   end
 
   def required_data
   end
 
-  def required_data_descriptions
+  def self.find name
   end
 end
+
+# DEFAULT_SETTINGS = {
+#   # Customize with a Turplefile in the root of the template directory
+#   template: {
+#     # Hash of required data needed to interpolate the template
+#     # REQUIREMENTS:
+#     #   * Keys can be nested to represent multiple variables in the template using the seperator
+#     #     Inside a template file:
+#     #       My foo bar is {{FOO.BAR}}
+#     #     Required Data:
+#     #       {
+#     #         foo: {
+#     #           bar: "What is your foo bar name?"
+#     #         }
+#     #       }
+#     #   * Keys are valid ruby symbols without quotes
+#     #     Good:
+#     #       { foo_bar: "What is your foo bar name?" }
+#     #     Bad:
+#     #       { "Foo Bar" => "What is your foo bar name?" }
+#     #   * Values are questions/details used in interactive mode to help the user enter a value
+#     #     Examples:
+#     #       { first_name: "What is your first name?" }
+#     #       { license: "How do you want to license your project? Check choosealicense.com for options." }
+#     #       { isbn: "ISBN (found near the barcode)" }
+#     required_data: {},
+#
+#     # INTERPOLATION SETTINGS
+#     # All examples use the following data:
+#     #   { author: { first_name: 'John' }}
+#     #
+#     # PATH INTERPOLATION
+#     # EXAMPLE:
+#     #    FROM: file_{{AUTHOR.FIRST_NAME}}.txt
+#     #      TO: file_John.txt
+#     #
+#     # Regex for file/folder path interpolation
+#     # REQUIREMENTS:
+#     #   * Must include the value of path_separator in the character set
+#     #   * May need to be escaped
+#     # DEFAULT:
+#     #   * Only capital letters: A-Z
+#     #   * Multi-word keys seperated with an underscore: _
+#     #   * Surrounded by double curly braces: {{ }}
+#     path_regex: '\{\{([A-Z_\.]+)\}\}',
+#
+#     # Separator for nested keys
+#     # DEFAULT: .
+#     path_separator: '.',
+#
+#     # CONTENT INTERPOLATION
+#     # EXAMPLE:
+#     #    FROM: profile.txt.turple
+#     #      TO: profile.txt
+#     #
+#     # EXAMPLE:
+#     #    FROM: The authors name is {{AUTHOR.FIRST_NAME}}
+#     #      TO: The authors name is John
+#     #
+#     # Extension for files that need their content interpolated
+#     # REQUIREMENTS:
+#     #   * Must be alpha-numeric characters only
+#     # DEFAULT: turple
+#     content_file_ext: 'turple',
+#
+#     # Regex for content interpolation
+#     # REQUIREMENTS:
+#     #   * Must include the value of content_separator in the character set
+#     #   * May need to be escaped
+#     # DEFAULT:
+#     #   * Only capital letters: A-Z
+#     #   * Multi-word keys seperated with an underscore: _
+#     #   * Surrounded by double curly braces: {{ }}
+#     content_regex: '\{\{([A-Z_\.]+)\}\}',
+#
+#     # Separator for nested keys
+#     # DEFAULT: .
+#     content_separator: '.'
+#   },
+#
+#   # Customize with a Turplefile in the home directory
+#   # Customize with a Turplefile in the project directory
+#   project: {
+#     # path to where the interpolated template should be saved
+#     path: File.join(Dir.pwd, 'turple'),
+#
+#     url: nil
+#   }
+# }.freeze
 
 # # require 'active_support/core_ext/hash/deep_merge'
 # # require 'cli_miami'

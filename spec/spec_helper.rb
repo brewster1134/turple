@@ -1,6 +1,7 @@
 require 'coveralls'
 Coveralls.wear!
 require 'turple'
+require 'turple/cli'
 
 # See http://rubydoc.info/gems/rspec-core/RSpec/Core/Configuration
 RSpec.configure do |config|

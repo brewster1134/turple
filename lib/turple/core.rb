@@ -1,9 +1,70 @@
 #
 # Turple::Core
-# Acts as the controller for the other Turple classes
+# Acts as the controller and state of Turple session
 #
 class Turple::Core
-  def initialize object_hash
+  # Global settings hash
+  @@settings = {}
+
+  # Main entry point into Turple
+  # @param [Hash] args
+  # @option args [String] :source   Location of a Turple source
+  # @option args [String] :template Name of a Turple template
+  # @option args [String] :project  Path to the new project directory
+  #
+  def initialize args
+    # Load Turplefile from home directory
+    Turple::Core.load_turplefile '~'
+
+    if args[:source]
+      source = Turple::Source.new args[:source], :user
+      args[:source] = source
+    end
+
+    if args[:template].is_a? String
+      # find path from passed source, or search all sources
+      template_path = if args[:source]
+        args[:source].templates[args[:template].to_sym]
+      else
+        Turple::Template.find args[:template]
+      end
+
+      # initialize and set new template
+      template = Turple::Template.new template_path
+      args[:template] = template
+    end
+
+    if args[:project].is_a? String
+      project = Turple::Project.new args[:project]
+      args[:project] = project
+    end
+
+    self.interpolate args[:template], args[:project]
+  end
+
+  def interpolate template, project
+  end
+
+  def self.settings
+    @@settings
+  end
+
+  def self.settings= hash
+    @@settings.deep_merge! hash.deep_symbolize_keys
+  end
+
+  def self.load_turplefile local_path
+    absolute_path = File.join(File.expand_path(local_path), 'Turplefile')
+    turplefile = YAML.load(File.read(absolute_path)).deep_symbolize_keys
+
+    sources = turplefile.delete(:sources) || []
+    sources.each do |name, location|
+      Turple::Source.new location, name
+    end
+
+    self.settings = turplefile
+  rescue
+    return false
   end
 end
 

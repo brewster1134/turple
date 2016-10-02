@@ -4,11 +4,9 @@
 # @see help Run `turple help` from the command line
 #
 # Dependencies
-require 'active_support/inflector'
 require 'i18n'
 require 'cli_miami/global'
 require 'thor'
-require 'turple'
 
 class Turple::Cli < Thor
   desc 'ate', I18n.t('turple.cli.ate.desc')
@@ -158,22 +156,19 @@ class Turple::Cli < Thor
     #
     def ask_user_for_data template, project
       required_data = template.required_data
-      required_data_descriptions = template.required_data_descriptions
       existing_data = project.data
 
-      ask_user_for_data_from_hash required_data, required_data_descriptions, existing_data
+      ask_user_for_data_for_hash required_data, existing_data
     end
 
     # Process data and lookup descriptions of missing data
     # @param required_data [Hash] All required data for template
-    # @param required_data_descriptions [Hash] Mirrored hash of required data with descriptions of values
     # @param existing_data [Hash] Any data already set on the project
     # @param parent_keys [Array] Array of keys used for a back up description
     # @param [Hash] The entered users data mirroring the required data object
     #
-    def ask_user_for_data_from_hash required_data, required_data_descriptions, existing_data, parent_keys = []
+    def ask_user_for_data_for_hash required_data, existing_data, parent_keys = []
       # ensure an empty hash
-      required_data_descriptions ||= {}
       existing_data ||= {}
 
       required_data.keys.inject({}) do |user_data, key|
@@ -187,11 +182,11 @@ class Turple::Cli < Thor
           # keep tracking of parent keys in case we need them if a description is missing
           parent_keys << key
 
-          ask_user_for_data_from_hash required_data[key], required_data_descriptions[key], existing_data[key], parent_keys
+          ask_user_for_data_for_hash required_data[key], existing_data[key], parent_keys
 
         # prompt user for value
         else
-          ask_user_for_data_from_description required_data_descriptions[key] || parent_keys.join(' ').titleize
+          ask_user_for_data_for_key required_data[key]
         end
 
         # return user_data
@@ -200,10 +195,10 @@ class Turple::Cli < Thor
     end
 
     # Prompt user for a single value
-    # @param description [String] Text telling the user what to enter
-    # @return [String] The user's entered value
+    # @param description [String] Text to prompt the user with what to enter
+    # @return [String] The user provided value
     #
-    def ask_user_for_data_from_description description
+    def ask_user_for_data_for_key description
       value = nil
 
       until !value.nil? && !value.empty?

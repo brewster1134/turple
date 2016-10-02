@@ -91,7 +91,6 @@ describe Turple::Cli do
       @template = @cli.ask_user_for_source_or_template
     end
 
-
     it 'should allow adding multiple sources, and end with choosing a template' do
       expect(@cli_method_calls).to eq [
         :show_user_templates,
@@ -215,36 +214,25 @@ describe Turple::Cli do
   describe '.ask_user_for_data' do
     before do
       allow(@cli).to receive(:ask_user_for_data).and_call_original
-      allow(@cli).to receive(:ask_user_for_data_from_hash)
+      allow(@cli).to receive(:ask_user_for_data_for_hash)
 
       allow(@template_instance).to receive(:required_data).and_return :required_data
-      allow(@template_instance).to receive(:required_data_descriptions).and_return :required_data_descriptions
       allow(@project_instance).to receive(:data).and_return :existing_data
 
       @cli.ask_user_for_data @template_instance, @project_instance
     end
 
     it 'should collect data' do
-      expect(@cli).to have_received(:ask_user_for_data_from_hash).with :required_data, :required_data_descriptions, :existing_data
+      expect(@cli).to have_received(:ask_user_for_data_for_hash).with :required_data, :existing_data
     end
   end
 
-  describe '.ask_user_for_data_from_hash' do
+  describe '.ask_user_for_data_for_hash' do
     before do
-      allow(@cli).to receive(:ask_user_for_data_from_hash).and_call_original
+      allow(@cli).to receive(:ask_user_for_data_for_hash).and_call_original
 
       @required_data = {
-        var: nil,
-        existing_var: nil,
-        nested: {
-          var: nil,
-          missing_description: nil
-        }
-      }
-
-      @required_data_descriptions = {
         var: 'What is var?',
-        existing_var: 'What is existing var?',
         nested: {
           var: 'What is nested var?'
         }
@@ -257,21 +245,19 @@ describe Turple::Cli do
 
       @completed_data = {
         var: 'VAR',
-        existing_var: 'EXISTING VAR',
         nested: {
           var: 'NESTED VAR',
-          missing_description: 'NESTED MISSING DESCRIPTION'
         }
       }
 
-      allow(@cli).to receive(:ask_user_for_data_from_description).and_return 'VAR', 'NESTED VAR', 'NESTED MISSING DESCRIPTION'
+      allow(@cli).to receive(:ask_user_for_data_for_key).and_return 'VAR', 'NESTED VAR'
 
-      @data = @cli.ask_user_for_data_from_hash @required_data, @required_data_descriptions, @existing_data
+      @data = @cli.ask_user_for_data_for_hash @required_data, @existing_data
     end
 
     it 'should prompt user for missing data' do
-      expect(@cli).to have_received(:ask_user_for_data_from_hash).exactly(2).times
-      expect(@cli).to have_received(:ask_user_for_data_from_description).exactly(3).times
+      expect(@cli).to have_received(:ask_user_for_data_for_hash).exactly(2).times
+      expect(@cli).to have_received(:ask_user_for_data_for_key).exactly(2).times
     end
 
     it 'should return a hash' do
@@ -279,9 +265,9 @@ describe Turple::Cli do
     end
   end
 
-  describe '.ask_user_for_data_from_description' do
+  describe '.ask_user_for_data_for_key' do
     before do
-      allow(@cli).to receive(:ask_user_for_data_from_description).and_call_original
+      allow(@cli).to receive(:ask_user_for_data_for_key).and_call_original
 
       allow(@ask_instance).to receive(:value).and_return '', 'John'
 
@@ -290,7 +276,7 @@ describe Turple::Cli do
         @cli_method_calls << arg
       end.and_return @ask_instance
 
-      @value = @cli.ask_user_for_data_from_description 'Name'
+      @value = @cli.ask_user_for_data_for_key 'Name'
     end
 
     it 'should prompt user for a value' do

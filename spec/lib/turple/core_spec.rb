@@ -1,4 +1,203 @@
 describe Turple::Core do
+  describe '#initialize' do
+    before do
+      @core_instance = Turple::Core.allocate
+      allow(@core_instance).to receive(:interpolate)
+      allow(Turple::Core).to receive(:load_turplefile)
+      allow(Turple::Source).to receive(:new)
+    end
+
+    after do
+      allow(Turple::Core).to receive(:load_turplefile).and_call_original
+      allow(Turple::Source).to receive(:new).and_call_original
+      allow(Turple::Template).to receive(:find).and_call_original
+      allow(Turple::Template).to receive(:new).and_call_original
+    end
+
+    context 'when source is passed' do
+      before do
+        @core_instance.send :initialize, source: 'source_location'
+      end
+
+      it 'should initialize a source' do
+        expect(Turple::Source).to have_received(:new).with 'source_location', :user
+      end
+    end
+
+    context 'when template is passed as a string' do
+      context 'when a source is passed' do
+        before do
+          @source_instance = instance_double Turple::Source
+          @template_instance = instance_double Turple::Template
+
+          allow(@source_instance).to receive(:templates).and_return user_source_template_name: 'local_source_template_path'
+          allow(Turple::Source).to receive(:new).and_return @source_instance
+          allow(Turple::Template).to receive(:find)
+          allow(Turple::Template).to receive(:new).and_return @template_instance
+
+          @core_instance.send :initialize, template: 'user_source_template_name', source: 'source_location'
+        end
+
+        it 'should not search the sources' do
+          expect(Turple::Template).to_not have_received(:find).with 'user_source_template_name'
+        end
+
+        it 'should initialize a template' do
+          expect(Turple::Template).to have_received(:new).with 'local_source_template_path'
+        end
+
+        it 'should interpolate with the source template' do
+          expect(@core_instance).to have_received(:interpolate).with @template_instance, nil
+        end
+      end
+
+      context 'when a source is not passed' do
+        before do
+          @template_instance = instance_double Turple::Template
+
+          allow(Turple::Template).to receive(:find).and_return 'local_template_path'
+          allow(Turple::Template).to receive(:new).and_return @template_instance
+
+          @core_instance.send :initialize, template: 'user_template_name'
+        end
+
+        it 'should search the sources for the template' do
+          expect(Turple::Template).to have_received(:find).with 'user_template_name'
+        end
+
+        it 'should initialize a template' do
+          expect(Turple::Template).to have_received(:new).with 'local_template_path'
+        end
+
+        it 'should interpolate with the template' do
+          expect(@core_instance).to have_received(:interpolate).with @template_instance, nil
+        end
+      end
+    end
+
+    context 'when project is passed as a string' do
+      before do
+        allow(Turple::Project).to receive(:new)
+
+        @core_instance.send :initialize, project: 'local_project_path'
+      end
+
+      after do
+        allow(Turple::Project).to receive(:new).and_call_original
+      end
+
+      it 'should initialize a project' do
+        expect(Turple::Project).to have_received(:new).with 'local_project_path'
+      end
+    end
+
+    context 'when Template and Project objects exist' do
+      before do
+        @template_instance = instance_double Turple::Template
+        @project_instance = instance_double Turple::Project
+
+        @core_instance.send :initialize, template: @template_instance, project: @project_instance
+      end
+
+      it 'should load home Turplefile' do
+        expect(Turple::Core).to have_received(:load_turplefile).with '~'
+      end
+
+      it 'should interpolate the template to the project' do
+        expect(@core_instance).to have_received(:interpolate).with @template_instance, @project_instance
+      end
+    end
+  end
+
+  describe '#load_turplefile' do
+    before do
+      allow(File).to receive(:read).and_return('foo: bar')
+    end
+
+    after do
+      allow(File).to receive(:read).and_call_original
+    end
+
+    it 'should try to read the absolute path' do
+      turplefile_path = File.join(File.expand_path('~'), 'Turplefile')
+      expect(File).to receive(:read).with turplefile_path
+
+      Turple::Core.load_turplefile '~'
+    end
+
+    context 'when sources exist' do
+      before do
+        allow(Turple::Source).to receive(:new)
+        allow(YAML).to receive(:load).and_return({
+          sources: {
+            foo: 'foo_source',
+            bar: 'bar_source'
+          }
+        })
+
+        Turple::Core.load_turplefile '~'
+      end
+
+      after do
+        allow(Turple::Source).to receive(:new).and_call_original
+      end
+
+      it 'should initialize each source' do
+        expect(Turple::Source).to have_received(:new).exactly(2).times
+        expect(Turple::Source).to have_received(:new).with 'foo_source', :foo
+        expect(Turple::Source).to have_received(:new).with 'bar_source', :bar
+      end
+    end
+
+    context 'when project/template exists' do
+      before do
+        allow(Turple::Core).to receive(:settings=)
+        allow(YAML).to receive(:load).and_return({ foo: 'foo' })
+
+        Turple::Core.load_turplefile '~'
+      end
+
+      after do
+        allow(Turple::Core).to receive(:settings=).and_call_original
+      end
+
+      it 'should update the settings' do
+        expect(Turple::Core).to have_received(:settings=).with({ foo: 'foo' })
+      end
+    end
+  end
+
+  describe '#settings=' do
+    before do
+      Turple::Core.class_variable_set :@@settings, {}
+
+      Turple::Core.settings=({
+        'foo' => 'foo',
+        'project' => {
+          'fname' => 'John'
+        }
+      })
+
+      Turple::Core.settings=({
+        'bar' => 'bar',
+        'project' => {
+          'fname' => 'Jane',
+          'lname' => 'Doe'
+        }
+      })
+    end
+
+    it 'should merge into the global settings' do
+      expect(Turple::Core.settings).to eq({
+        foo: 'foo',
+        bar: 'bar',
+        project: {
+          fname: 'Jane',
+          lname: 'Doe'
+        }
+      })
+    end
+  end
 end
 
 # require 'recursive-open-struct'

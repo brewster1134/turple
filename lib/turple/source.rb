@@ -15,6 +15,8 @@ class Turple::Source
   end
 end
 
+Turple::Source.new 'brewster1134/turple-templates', :default
+
 # #
 # # Turple::Source
 # #
