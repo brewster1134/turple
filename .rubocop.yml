@@ -1,0 +1,37 @@
+# settings
+Lint/EndAlignment:
+  AlignWith: variable
+Style/AccessModifierIndentation:
+  EnforcedStyle: outdent
+Style/Alias:
+  EnforcedStyle: prefer_alias_method
+Style/AlignParameters:
+  EnforcedStyle: with_fixed_indentation
+Style/CaseIndentation:
+  IndentWhenRelativeTo: end
+Style/ClassAndModuleChildren:
+  EnforcedStyle: compact
+Style/IndentHash:
+  EnforcedStyle: consistent
+Style/MethodDefParentheses:
+  EnforcedStyle: require_no_parentheses
+Style/SignalException:
+  EnforcedStyle: only_raise
+Style/StringLiterals:
+  EnforcedStyle: single_quotes
+Style/TrivialAccessors:
+  AllowPredicates: true
+
+# enabled/disabled
+Metrics/ClassLength:
+  Enabled: false
+Metrics/LineLength:
+  Enabled: false
+Style/GuardClause:
+  MinBodyLength: 2
+Style/IfUnlessModifier:
+  Enabled: false
+Style/RescueModifier:
+  Enabled: false
+Style/SpaceBeforeBlockBraces:
+  Enabled: false
