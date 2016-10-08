@@ -16,6 +16,7 @@ class Turple::Core
     # Load Turplefile from home directory
     Turple::Core.load_turplefile '~'
 
+    # when a source is passed...
     if args[:source]
       source = Turple::Source.find args[:source]
 
@@ -27,6 +28,11 @@ class Turple::Core
       args[:source] = source
     end
 
+    # when a template is passed...
+    # * if a Turple::Template, it is coming from the Turple command line
+    # * if a string...
+    #   * look for existing template
+    #   * initialize new template
     if args[:template].is_a? String
       template = nil
 
@@ -47,6 +53,9 @@ class Turple::Core
       args[:template] = template
     end
 
+    # when a project is passed...
+    # * if a Turple::Project, it is coming from the Turple command line
+    # * if a string, assume it is a local path
     if args[:project].is_a? String
       args[:project] = Turple::Project.new args[:project]
     end

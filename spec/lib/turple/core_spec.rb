@@ -2,8 +2,6 @@ describe Turple::Core do
   describe '#initialize' do
     before do
       @core_instance = Turple::Core.allocate
-      @source_instance = instance_double Turple::Source
-      @template_instance = instance_double Turple::Template
 
       allow(@core_instance).to receive(:interpolate)
       allow(Turple::Core).to receive(:load_turplefile)
@@ -31,7 +29,7 @@ describe Turple::Core do
 
     context 'when source is passed' do
       context 'when source exists' do
-        it 'should not initialize a new source' do
+        it 'should find the existing source' do
           allow(Turple::Source).to receive(:find).and_return Turple::Source.allocate
 
           expect(Turple::Source).to receive(:find).with 'user_source_existing'
@@ -60,29 +58,25 @@ describe Turple::Core do
           allow(Turple::Source).to receive(:find).and_return @source_allocation
         end
 
-        context 'when template exists in source' do
-          before do
+        context 'when template exists in the source' do
+          it 'should find the source template' do
             allow(@source_allocation).to receive(:find_template).and_return Turple::Template.allocate
-          end
 
-          after :each do
+            expect(@source_allocation).to receive(:find_template).with('user_template').ordered
+            expect(Turple::Template).to_not receive(:find).ordered
+            expect(Turple::Template).to_not receive(:new).ordered
+
             @core_instance.send :initialize, template: 'user_template', source: 'user_source'
-          end
-
-          it 'should only search the source' do
-            expect(@source_allocation).to receive(:find_template).with 'user_template'
-            expect(Turple::Template).to_not receive(:find)
-          end
-
-          it 'should not initialize the template' do
-            expect(Turple::Template).to_not receive(:new)
           end
         end
 
-        context 'when template does not exist in source' do
+        context 'when template does not exist in the source' do
           it 'should raise an error' do
             allow(@source_allocation).to receive(:find_template).and_return nil
 
+            expect(@source_allocation).to receive(:find_template).with('user_template').ordered
+            expect(Turple::Template).to_not receive(:find).ordered
+            expect(Turple::Template).to_not receive(:new).ordered
             expect{ @core_instance.send(:initialize, template: 'user_template', source: 'user_source') }.
               to raise_error Turple::Error
           end
@@ -91,50 +85,32 @@ describe Turple::Core do
 
       context 'when a source is not passed' do
         context 'when the template exists' do
-          before do
-            allow(Turple::Template).to receive(:find).and_return @template_instance
-          end
+          it 'should find the existing template' do
+            allow(Turple::Template).to receive(:find).and_return true
 
-          after :each do
-            @core_instance.send :initialize, template: 'user_template'
-          end
-
-          it 'should search all templates' do
             expect(Turple::Template).to receive(:find).with 'user_template'
-          end
-
-          it 'should not initialize the template' do
             expect(Turple::Template).to_not receive(:new)
+
+            @core_instance.send :initialize, template: 'user_template'
           end
         end
 
         context 'when the template does not exist' do
-          context 'when the template can be initialized' do
-            it 'should initialize the template' do
-              allow(Turple::Template).to receive(:find).and_return nil
-              allow(Turple::Template).to receive(:new).and_return @template_instance
+          it 'should initialize a new template' do
+            allow(Turple::Template).to receive(:find).and_return nil
+            allow(Turple::Template).to receive(:new)
 
-              expect(Turple::Template).to receive(:new).with 'user_template'
+            expect(Turple::Template).to receive(:find).with('user_template').ordered
+            expect(Turple::Template).to receive(:new).with('user_template').ordered
 
-              @core_instance.send :initialize, template: 'user_template'
-            end
-          end
-
-          context 'when the template can not be initialized' do
-            it 'should raise an error' do
-              allow(Turple::Template).to receive(:find).and_return nil
-              allow(Turple::Template).to receive(:new).and_raise Exception.new
-
-              expect{ @core_instance.send(:initialize, template: 'user_template') }.
-                to raise_error Exception
-            end
+            @core_instance.send :initialize, template: 'user_template'
           end
         end
       end
     end
 
     context 'when project is passed as a string' do
-      it 'should initialize a project' do
+      it 'should initialize a new project' do
         allow(Turple::Project).to receive(:new)
 
         expect(Turple::Project).to receive(:new).with 'local_project_path'
