@@ -18,7 +18,7 @@ class Turple::Cli < Thor
     data = self.ask_user_for_data template, project
 
     # Apply user data to the project
-    project.apply_data data
+    Turple::Core.settings = { project: { data: data }}
 
     # Start turple with valid data
     Turple::Core.new template: template, project: project

@@ -29,6 +29,7 @@ end
 
 # TURPLE LIBRARY
 require 'turple/core'
+require 'turple/error'
 require 'turple/project'
 require 'turple/source'
 require 'turple/template'

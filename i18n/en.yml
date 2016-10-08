@@ -8,16 +8,20 @@ en: &en
       version:
         desc: Show the currently installed turple version
       ask_user_for_source_or_template:
-        prompt: Choose the `template` option if the template you need is already loaded, otherwise choose to add a new source that has the template you need.
+        prompt: Choose the `template` option if the template you need is already loaded, otherwise choose to add a new source that has the template you need
         source: Add a new source
         template: Choose an existing template
       ask_user_for_source:
         prompt: Enter the location of a new Turple source
       ask_user_for_template:
         prompt: Choose an existing template
-        template: "Source: %{source_name}, Template:  %{template_name}"
+        template: "Source: %{source_name}, Template: %{template_name}"
       ask_user_for_project:
         prompt: Enter a path to the project you want to create
+
+    source:
+      find_template:
+        not_found: "The source %{source_name} could not the find the template %{template_name}"
 
 # regional variations
 en_gb:

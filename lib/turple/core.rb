@@ -17,26 +17,38 @@ class Turple::Core
     Turple::Core.load_turplefile '~'
 
     if args[:source]
-      source = Turple::Source.new args[:source], :user
+      source = Turple::Source.find args[:source]
+
+      # if no exisitng source is found, initialize a new one
+      unless source.is_a? Turple::Source
+        source = Turple::Source.new args[:source], :user
+      end
+
       args[:source] = source
     end
 
     if args[:template].is_a? String
-      # find path from passed source, or search all sources
-      template_path = if args[:source]
-        args[:source].templates[args[:template].to_sym]
+      template = nil
+
+      # get template from passed source
+      if args[:source].is_a? Turple::Source
+        template = args[:source].find_template args[:template]
+
+        # raise an error since the user explicitly wanted to find a template in a specific source
+        unless template.is_a? Turple::Template
+          raise Turple::Error.new I18n.t('turple.source.find_template.not_found', source_name: args[:source].name, template_name: args[:template])
+        end
+
+      # try to find an existing template, or initialize a new one
       else
-        Turple::Template.find args[:template]
+        template = Turple::Template.find(args[:template]) || Turple::Template.new(args[:template])
       end
 
-      # initialize and set new template
-      template = Turple::Template.new template_path
       args[:template] = template
     end
 
     if args[:project].is_a? String
-      project = Turple::Project.new args[:project]
-      args[:project] = project
+      args[:project] = Turple::Project.new args[:project]
     end
 
     self.interpolate args[:template], args[:project]

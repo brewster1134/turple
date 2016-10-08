@@ -2,109 +2,144 @@ describe Turple::Core do
   describe '#initialize' do
     before do
       @core_instance = Turple::Core.allocate
+      @source_instance = instance_double Turple::Source
+      @template_instance = instance_double Turple::Template
+
       allow(@core_instance).to receive(:interpolate)
       allow(Turple::Core).to receive(:load_turplefile)
+      allow(Turple::Project).to receive(:new)
+      allow(Turple::Source).to receive(:find)
       allow(Turple::Source).to receive(:new)
+      allow(Turple::Template).to receive(:find)
+      allow(Turple::Template).to receive(:new)
     end
 
-    after do
+    after :each do
       allow(Turple::Core).to receive(:load_turplefile).and_call_original
+      allow(Turple::Project).to receive(:new).and_call_original
+      allow(Turple::Source).to receive(:find).and_call_original
       allow(Turple::Source).to receive(:new).and_call_original
       allow(Turple::Template).to receive(:find).and_call_original
       allow(Turple::Template).to receive(:new).and_call_original
     end
 
+    it 'should load home Turplefile' do
+      expect(Turple::Core).to receive(:load_turplefile).with '~'
+
+      @core_instance.send :initialize, {}
+    end
+
     context 'when source is passed' do
-      before do
-        @core_instance.send :initialize, source: 'source_location'
+      context 'when source exists' do
+        it 'should not initialize a new source' do
+          allow(Turple::Source).to receive(:find).and_return Turple::Source.allocate
+
+          expect(Turple::Source).to receive(:find).with 'user_source_existing'
+          expect(Turple::Source).to_not receive(:new)
+
+          @core_instance.send :initialize, source: 'user_source_existing'
+        end
       end
 
-      it 'should initialize a source' do
-        expect(Turple::Source).to have_received(:new).with 'source_location', :user
+      context 'when source does not exist' do
+        it 'should initialize a new source' do
+          allow(Turple::Source).to receive(:find).and_return nil
+
+          expect(Turple::Source).to receive(:find).with('user_source_new').ordered
+          expect(Turple::Source).to receive(:new).with('user_source_new', :user).ordered
+
+          @core_instance.send :initialize, source: 'user_source_new'
+        end
       end
     end
 
     context 'when template is passed as a string' do
       context 'when a source is passed' do
         before do
-          @source_instance = instance_double Turple::Source
-          @template_instance = instance_double Turple::Template
-
-          allow(@source_instance).to receive(:templates).and_return user_source_template_name: 'local_source_template_path'
-          allow(Turple::Source).to receive(:new).and_return @source_instance
-          allow(Turple::Template).to receive(:find)
-          allow(Turple::Template).to receive(:new).and_return @template_instance
-
-          @core_instance.send :initialize, template: 'user_source_template_name', source: 'source_location'
+          @source_allocation = Turple::Source.allocate
+          allow(Turple::Source).to receive(:find).and_return @source_allocation
         end
 
-        it 'should not search the sources' do
-          expect(Turple::Template).to_not have_received(:find).with 'user_source_template_name'
+        context 'when template exists in source' do
+          before do
+            allow(@source_allocation).to receive(:find_template).and_return Turple::Template.allocate
+          end
+
+          after :each do
+            @core_instance.send :initialize, template: 'user_template', source: 'user_source'
+          end
+
+          it 'should only search the source' do
+            expect(@source_allocation).to receive(:find_template).with 'user_template'
+            expect(Turple::Template).to_not receive(:find)
+          end
+
+          it 'should not initialize the template' do
+            expect(Turple::Template).to_not receive(:new)
+          end
         end
 
-        it 'should initialize a template' do
-          expect(Turple::Template).to have_received(:new).with 'local_source_template_path'
-        end
+        context 'when template does not exist in source' do
+          it 'should raise an error' do
+            allow(@source_allocation).to receive(:find_template).and_return nil
 
-        it 'should interpolate with the source template' do
-          expect(@core_instance).to have_received(:interpolate).with @template_instance, nil
+            expect{ @core_instance.send(:initialize, template: 'user_template', source: 'user_source') }.
+              to raise_error Turple::Error
+          end
         end
       end
 
       context 'when a source is not passed' do
-        before do
-          @template_instance = instance_double Turple::Template
+        context 'when the template exists' do
+          before do
+            allow(Turple::Template).to receive(:find).and_return @template_instance
+          end
 
-          allow(Turple::Template).to receive(:find).and_return 'local_template_path'
-          allow(Turple::Template).to receive(:new).and_return @template_instance
+          after :each do
+            @core_instance.send :initialize, template: 'user_template'
+          end
 
-          @core_instance.send :initialize, template: 'user_template_name'
+          it 'should search all templates' do
+            expect(Turple::Template).to receive(:find).with 'user_template'
+          end
+
+          it 'should not initialize the template' do
+            expect(Turple::Template).to_not receive(:new)
+          end
         end
 
-        it 'should search the sources for the template' do
-          expect(Turple::Template).to have_received(:find).with 'user_template_name'
-        end
+        context 'when the template does not exist' do
+          context 'when the template can be initialized' do
+            it 'should initialize the template' do
+              allow(Turple::Template).to receive(:find).and_return nil
+              allow(Turple::Template).to receive(:new).and_return @template_instance
 
-        it 'should initialize a template' do
-          expect(Turple::Template).to have_received(:new).with 'local_template_path'
-        end
+              expect(Turple::Template).to receive(:new).with 'user_template'
 
-        it 'should interpolate with the template' do
-          expect(@core_instance).to have_received(:interpolate).with @template_instance, nil
+              @core_instance.send :initialize, template: 'user_template'
+            end
+          end
+
+          context 'when the template can not be initialized' do
+            it 'should raise an error' do
+              allow(Turple::Template).to receive(:find).and_return nil
+              allow(Turple::Template).to receive(:new).and_raise Exception.new
+
+              expect{ @core_instance.send(:initialize, template: 'user_template') }.
+                to raise_error Exception
+            end
+          end
         end
       end
     end
 
     context 'when project is passed as a string' do
-      before do
+      it 'should initialize a project' do
         allow(Turple::Project).to receive(:new)
 
+        expect(Turple::Project).to receive(:new).with 'local_project_path'
+
         @core_instance.send :initialize, project: 'local_project_path'
-      end
-
-      after do
-        allow(Turple::Project).to receive(:new).and_call_original
-      end
-
-      it 'should initialize a project' do
-        expect(Turple::Project).to have_received(:new).with 'local_project_path'
-      end
-    end
-
-    context 'when Template and Project objects exist' do
-      before do
-        @template_instance = instance_double Turple::Template
-        @project_instance = instance_double Turple::Project
-
-        @core_instance.send :initialize, template: @template_instance, project: @project_instance
-      end
-
-      it 'should load home Turplefile' do
-        expect(Turple::Core).to have_received(:load_turplefile).with '~'
-      end
-
-      it 'should interpolate the template to the project' do
-        expect(@core_instance).to have_received(:interpolate).with @template_instance, @project_instance
       end
     end
   end

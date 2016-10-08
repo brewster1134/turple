@@ -1,9 +1,6 @@
 require 'turple/cli'
 
 describe Turple::Cli do
-  #
-  # SETUP
-  #
   before do
     @cli = Turple::Cli.new
     @ask_instance = instance_double CliMiami::A
@@ -15,33 +12,30 @@ describe Turple::Cli do
     allow(@cli).to receive(:ask_user_for_source_or_template).and_return @template_instance
     allow(@cli).to receive(:ask_user_for_source).and_return @source_instance
     allow(@cli).to receive(:ask_user_for_template).and_return Turple::Template.allocate
-    allow(@cli).to receive(:ask_user_for_data).and_return Hash.new
+    allow(@cli).to receive(:ask_user_for_data).and_return({ foo: 'foo' })
     allow(@cli).to receive(:show_user_templates)
-    allow(@project_instance).to receive(:apply_data)
     allow(@source_instance).to receive(:name).and_return 'Source Name'
     allow(@source_instance).to receive(:templates).and_return [Turple::Template.allocate]
 
     allow_any_instance_of(Turple::Template).to receive(:name).and_return 'Template Name'
     allow(CliMiami::A).to receive(:sk).and_return @ask_instance
     allow(Turple::Core).to receive(:new)
+    allow(Turple::Core).to receive(:settings=)
     allow(Turple::Project).to receive(:new).and_return Turple::Project.allocate
     allow(Turple::Source).to receive(:all).and_return [@source_instance]
     allow(Turple::Source).to receive(:new).and_return Turple::Source.allocate
   end
 
-  #
-  # TEARDOWN
-  #
   after do
     allow_any_instance_of(Turple::Template).to receive(:name).and_call_original
     allow(CliMiami::A).to receive(:sk).and_call_original
     allow(Turple::Core).to receive(:new).and_call_original
+    allow(Turple::Core).to receive(:settings=).and_call_original
     allow(Turple::Project).to receive(:new).and_call_original
     allow(Turple::Source).to receive(:all).and_call_original
     allow(Turple::Source).to receive(:new).and_call_original
   end
 
-  #
   # THOR METHODS
   #
   describe '#ate' do
@@ -54,7 +48,7 @@ describe Turple::Cli do
       expect(@cli).to have_received(:ask_user_for_source_or_template).ordered
       expect(@cli).to have_received(:ask_user_for_project).ordered
       expect(@cli).to have_received(:ask_user_for_data).with(@template_instance, @project_instance).ordered
-      expect(@project_instance).to have_received(:apply_data).ordered
+      expect(Turple::Core).to have_received(:settings=).with({ project: { data: { foo: 'foo' }}}).ordered
       expect(Turple::Core).to have_received(:new).with({
         template: @template_instance,
         project: @project_instance
@@ -62,7 +56,6 @@ describe Turple::Cli do
     end
   end
 
-  #
   # INSTANCE METHODS
   #
   describe '.ask_user_for_source_or_template' do

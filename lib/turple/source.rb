@@ -11,7 +11,17 @@ class Turple::Source
   def templates
   end
 
+  # @param template [String]  A template key, or name
+  #
+  def find_template template
+  end
+
   def self.all
+  end
+
+  # @param source [String]  A source key, name, or location
+  #
+  def self.find source
   end
 end
 

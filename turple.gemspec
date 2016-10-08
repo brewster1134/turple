@@ -16,10 +16,10 @@ Gem::Specification.new do |s|
   s.test_files  = Dir['spec/**/*']
   s.version     = Turple::VERSION
 
-  s.required_ruby_version = Gem::Requirement.new '>= 2.0.0-p247'
+  s.required_ruby_version = Gem::Requirement.new '>= 2.0.0p247'
 
   s.add_runtime_dependency 'activesupport', '4.2.7.1'
-  s.add_runtime_dependency 'cli_miami', '~> 1.0.6.pre'
+  s.add_runtime_dependency 'cli_miami', '~> 1.0.9.pre'
   s.add_runtime_dependency 'i18n'
   s.add_runtime_dependency 'recursive-open-struct'
   s.add_runtime_dependency 'thor'

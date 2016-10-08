@@ -3,12 +3,14 @@
 # Handles the details for the project to be generated
 class Turple::Project
   def initialize local_path
+    Turple::Core.load_turplefile local_path
+  end
+
+  def settings
+    Turple::Core.settings[:project]
   end
 
   def data
-  end
-
-  def apply_data data
   end
 end
 
