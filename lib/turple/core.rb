@@ -63,19 +63,34 @@ class Turple::Core
     self.interpolate args[:template], args[:project]
   end
 
+  # Handles the process of validating data and interpolating
+  # @param template [Turple::Template]  The template used to create the project
+  # @param project  [Turple::Project]   The project to create
+  #
   def interpolate template, project
   end
 
+  # Turple global settings hash
+  # @return [Hash] Global settings
+  #
   def self.settings
     @@settings
   end
 
-  def self.settings= hash
-    @@settings.deep_merge! hash.deep_symbolize_keys
+  # Recursively merge settings into the Turple global settings hash
+  # @param settings [Hash] Hash to apply to the global settings
+  # @return [Hash] Global settings
+  #
+  def self.settings= settings
+    @@settings.deep_merge! settings.deep_symbolize_keys
   end
 
-  def self.load_turplefile local_path
-    absolute_path = File.join(File.expand_path(local_path), 'Turplefile')
+  # Load a Turplefile from the provided path
+  # @param local_dir [String] File path to a local directory
+  # @return [Hash, false]     Global settings or false if nothing found
+  #
+  def self.load_turplefile local_dir
+    absolute_path = File.join(File.expand_path(local_dir), 'Turplefile')
     turplefile = YAML.load(File.read(absolute_path)).deep_symbolize_keys
 
     sources = turplefile.delete(:sources) || []

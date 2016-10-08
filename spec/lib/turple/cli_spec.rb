@@ -1,38 +1,23 @@
 require 'turple/cli'
 
 describe Turple::Cli do
-  before do
+  before :each do
     @cli = Turple::Cli.new
-    @ask_instance = instance_double CliMiami::A
-    @source_instance = instance_double Turple::Source
-    @project_instance = instance_double Turple::Project
-    @template_instance = instance_double Turple::Template
+    @project_instance = Turple::Project.allocate
+    @source_instance = Turple::Source.allocate
+    @template_instance = Turple::Template.allocate
+  end
 
-    allow(@cli).to receive(:ask_user_for_project).and_return @project_instance
-    allow(@cli).to receive(:ask_user_for_source_or_template).and_return @template_instance
-    allow(@cli).to receive(:ask_user_for_source).and_return @source_instance
-    allow(@cli).to receive(:ask_user_for_template).and_return Turple::Template.allocate
-    allow(@cli).to receive(:ask_user_for_data).and_return({ foo: 'foo' })
-    allow(@cli).to receive(:show_user_templates)
-    allow(@source_instance).to receive(:name).and_return 'Source Name'
-    allow(@source_instance).to receive(:templates).and_return [Turple::Template.allocate]
-
-    allow_any_instance_of(Turple::Template).to receive(:name).and_return 'Template Name'
+  before do
+    @ask_instance = CliMiami::A.allocate
     allow(CliMiami::A).to receive(:sk).and_return @ask_instance
-    allow(Turple::Core).to receive(:new)
-    allow(Turple::Core).to receive(:settings=)
-    allow(Turple::Project).to receive(:new).and_return Turple::Project.allocate
-    allow(Turple::Source).to receive(:all).and_return [@source_instance]
-    allow(Turple::Source).to receive(:new).and_return Turple::Source.allocate
+    allow(Turple::Core).to receive :new
+    allow(Turple::Source).to receive :new
   end
 
   after do
-    allow_any_instance_of(Turple::Template).to receive(:name).and_call_original
     allow(CliMiami::A).to receive(:sk).and_call_original
     allow(Turple::Core).to receive(:new).and_call_original
-    allow(Turple::Core).to receive(:settings=).and_call_original
-    allow(Turple::Project).to receive(:new).and_call_original
-    allow(Turple::Source).to receive(:all).and_call_original
     allow(Turple::Source).to receive(:new).and_call_original
   end
 
@@ -40,27 +25,30 @@ describe Turple::Cli do
   #
   describe '#ate' do
     before do
-      allow(@cli).to receive(:ate).and_call_original
-      @cli.ate
+      allow(@cli).to receive(:ask_user_for_source_or_template).and_return @template_instance
+      allow(@cli).to receive(:ask_user_for_project).and_return @project_instance
+      allow(@cli).to receive(:ask_user_for_data).and_return({ foo: 'foo' })
+      allow(@project_instance).to receive :apply_data
     end
 
     it 'should prompt user for action and start Turple' do
-      expect(@cli).to have_received(:ask_user_for_source_or_template).ordered
-      expect(@cli).to have_received(:ask_user_for_project).ordered
-      expect(@cli).to have_received(:ask_user_for_data).with(@template_instance, @project_instance).ordered
-      expect(Turple::Core).to have_received(:settings=).with({ project: { data: { foo: 'foo' }}}).ordered
-      expect(Turple::Core).to have_received(:new).with({
+      expect(@cli).to receive(:ask_user_for_source_or_template).ordered
+      expect(@cli).to receive(:ask_user_for_project).ordered
+      expect(@cli).to receive(:ask_user_for_data).with(@template_instance, @project_instance).ordered
+      expect(@project_instance).to receive(:apply_data).with({ foo: 'foo' }).ordered
+      expect(Turple::Core).to receive(:new).with({
         template: @template_instance,
         project: @project_instance
       }).ordered
+
+      @cli.ate
     end
   end
 
   # INSTANCE METHODS
   #
-  describe '.ask_user_for_source_or_template' do
+  describe '#ask_user_for_source_or_template' do
     before do
-      allow(@cli).to receive(:ask_user_for_source_or_template).and_call_original
       @cli_method_calls = []
 
       allow(@ask_instance).to receive(:value).and_return(
@@ -79,7 +67,7 @@ describe Turple::Cli do
 
       allow(@cli).to receive(:ask_user_for_template) do
         @cli_method_calls << :ask_user_for_template
-      end.and_return Turple::Template.allocate
+      end.and_return @template_instance
 
       @template = @cli.ask_user_for_source_or_template
     end
@@ -100,9 +88,9 @@ describe Turple::Cli do
     end
   end
 
-  describe '.ask_user_for_source' do
+  describe '#ask_user_for_source' do
     before do
-      allow(@cli).to receive(:ask_user_for_source).and_call_original
+      allow(Turple::Source).to receive(:all).and_return [@source_instance]
     end
 
     context 'when entering a source location' do
@@ -141,9 +129,12 @@ describe Turple::Cli do
     end
   end
 
-  describe '.ask_user_for_template' do
+  describe '#ask_user_for_template' do
     before do
-      allow(@cli).to receive(:ask_user_for_template).and_call_original
+      allow(@source_instance).to receive(:templates).and_return [@template_instance]
+      allow(@source_instance).to receive(:name).and_return 'Source Name'
+      allow(@template_instance).to receive(:name).and_return 'Template Name'
+      allow(Turple::Source).to receive(:all).and_return [@source_instance]
     end
 
     context 'when selecting a template' do
@@ -172,10 +163,8 @@ describe Turple::Cli do
     end
   end
 
-  describe '.ask_user_for_project' do
+  describe '#ask_user_for_project' do
     before do
-      allow(@cli).to receive(:ask_user_for_project).and_call_original
-
       @cli_method_calls = []
 
       allow(@ask_instance).to receive(:value) do |arg|
@@ -204,9 +193,8 @@ describe Turple::Cli do
     end
   end
 
-  describe '.ask_user_for_data' do
+  describe '#ask_user_for_data' do
     before do
-      allow(@cli).to receive(:ask_user_for_data).and_call_original
       allow(@cli).to receive(:ask_user_for_data_for_hash)
 
       allow(@template_instance).to receive(:required_data).and_return :required_data
@@ -220,10 +208,8 @@ describe Turple::Cli do
     end
   end
 
-  describe '.ask_user_for_data_for_hash' do
+  describe '#ask_user_for_data_for_hash' do
     before do
-      allow(@cli).to receive(:ask_user_for_data_for_hash).and_call_original
-
       @required_data = {
         var: 'What is var?',
         nested: {
@@ -243,6 +229,7 @@ describe Turple::Cli do
         }
       }
 
+      allow(@cli).to receive(:ask_user_for_data_for_hash).and_call_original
       allow(@cli).to receive(:ask_user_for_data_for_key).and_return 'VAR', 'NESTED VAR'
 
       @data = @cli.ask_user_for_data_for_hash @required_data, @existing_data
@@ -258,16 +245,13 @@ describe Turple::Cli do
     end
   end
 
-  describe '.ask_user_for_data_for_key' do
+  describe '#ask_user_for_data_for_key' do
     before do
-      allow(@cli).to receive(:ask_user_for_data_for_key).and_call_original
-
-      allow(@ask_instance).to receive(:value).and_return '', 'John'
-
       @cli_method_calls = []
       allow(CliMiami::A).to receive(:sk) do |arg|
         @cli_method_calls << arg
       end.and_return @ask_instance
+      allow(@ask_instance).to receive(:value).and_return '', 'John'
 
       @value = @cli.ask_user_for_data_for_key 'Name'
     end
@@ -281,10 +265,8 @@ describe Turple::Cli do
     end
   end
 
-  describe '.show_user_templates' do
+  describe '#show_user_templates' do
     before do
-      allow(@cli).to receive(:show_user_templates).and_call_original
-
       allow(Turple::Source).to receive(:all).and_return([
         @source_instance,
         @source_instance

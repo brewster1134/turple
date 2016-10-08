@@ -1,6 +1,6 @@
 #
 # Turple::Cli
-# Handles CLI methods and interactively collecting information from the user
+# Defines command line options and handles collecting information from the user
 # @see help Run `turple help` from the command line
 #
 # Dependencies
@@ -18,7 +18,7 @@ class Turple::Cli < Thor
     data = self.ask_user_for_data template, project
 
     # Apply user data to the project
-    Turple::Core.settings = { project: { data: data }}
+    project.apply_data data
 
     # Start turple with valid data
     Turple::Core.new template: template, project: project
@@ -31,7 +31,6 @@ class Turple::Cli < Thor
     S.ay Turple::VERSION
   end
 
-  # Intercept the default Thor help method to customize the description
   desc 'help [COMMAND]', I18n.t('turple.cli.help.desc')
   # @!visibility private
   def help command = nil;
@@ -39,6 +38,8 @@ class Turple::Cli < Thor
   end
 
   no_commands do
+
+    #
     # ASK METHODS
     #
 
@@ -170,8 +171,9 @@ class Turple::Cli < Thor
     def ask_user_for_data_for_hash required_data, existing_data, parent_keys = []
       # ensure an empty hash
       existing_data ||= {}
+      new_data = {}
 
-      required_data.keys.inject({}) do |user_data, key|
+      required_data.keys.inject(new_data) do |user_data, key|
 
         # if value already exists
         user_data[key] = if existing_data[key]
@@ -192,6 +194,8 @@ class Turple::Cli < Thor
         # return user_data
         user_data
       end
+
+      return new_data
     end
 
     # Prompt user for a single value
@@ -208,6 +212,7 @@ class Turple::Cli < Thor
       return value
     end
 
+    #
     # SHOW METHODS
     #
 
