@@ -10,12 +10,9 @@ class Turple::Core
   # @param [Hash] args
   # @option args [String] :source   Location of a Turple source
   # @option args [String] :template Name of a Turple template
-  # @option args [String] :project  Path to the new project directory
+  # @option args [Hash]   :project  Hash with project name & path
   #
   def initialize args
-    # Load Turplefile from home directory
-    Turple::Core.load_turplefile '~'
-
     # when a source is passed...
     if args[:source]
       source = Turple::Source.find args[:source]
@@ -55,9 +52,9 @@ class Turple::Core
 
     # when a project is passed...
     # * if a Turple::Project, it is coming from the Turple command line
-    # * if a string, assume it is a local path
-    if args[:project].is_a? String
-      args[:project] = Turple::Project.new args[:project]
+    # * if a Hash, initialize a new project with the hash contents
+    if args[:project].is_a? Hash
+      args[:project] = Turple::Project.new name: args[:project][:name], path: args[:project][:path], data: args[:project][:data]
     end
 
     self.interpolate args[:template], args[:project]

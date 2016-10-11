@@ -17,7 +17,8 @@ en: &en
         prompt: Choose an existing template
         template: "Source: %{source_name}, Template: %{template_name}"
       ask_user_for_project:
-        prompt: Enter a path to the project you want to create
+        name_prompt: Project name
+        path_prompt: Enter a path to the project you want to create
 
     source:
       find_template:

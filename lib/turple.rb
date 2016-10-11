@@ -18,8 +18,9 @@ I18n.locale = ENV['LANG'].split('.').first.downcase
 # Create Turple module & helper method
 #
 module Turple
-  def self.ate configuration
-    Turple::Core.new configuration
+  def self.ate args
+    Turple::Core.load_turplefile ENV['HOME']
+    Turple::Core.new args
   end
 
   def self.version

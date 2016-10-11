@@ -1,14 +1,18 @@
 describe Turple::Core do
-  before do
+  before :each do
     @core = Turple::Core.allocate
     @source_instance = Turple::Source.allocate
     @template_instance = Turple::Template.allocate
   end
 
+  after do
+    allow(File).to receive(:read).and_call_original
+    allow(Turple::Source).to receive(:new).and_call_original
+  end
+
   describe '#initialize' do
     before do
       allow(@core).to receive(:interpolate)
-      allow(Turple::Core).to receive(:load_turplefile)
       allow(Turple::Project).to receive(:new)
       allow(Turple::Source).to receive(:find)
       allow(Turple::Source).to receive(:new)
@@ -17,18 +21,11 @@ describe Turple::Core do
     end
 
     after do
-      allow(Turple::Core).to receive(:load_turplefile).and_call_original
       allow(Turple::Project).to receive(:new).and_call_original
       allow(Turple::Source).to receive(:find).and_call_original
       allow(Turple::Source).to receive(:new).and_call_original
       allow(Turple::Template).to receive(:find).and_call_original
       allow(Turple::Template).to receive(:new).and_call_original
-    end
-
-    it 'should load home Turplefile' do
-      expect(Turple::Core).to receive(:load_turplefile).with '~'
-
-      @core.send :initialize, {}
     end
 
     context 'when source is passed' do
@@ -123,64 +120,40 @@ describe Turple::Core do
     end
   end
 
-  describe.skip '#interpolate' do
+  describe '#interpolate' do
+    pending 'asd'
   end
 
   describe '.load_turplefile' do
     before do
-      allow(File).to receive(:read).and_return('foo: bar')
-    end
+      allow(File).to receive(:read)
+      allow(Turple::Core).to receive(:settings=)
+      allow(YAML).to receive(:load).and_return({
+        'project' => :project,
+        'sources' => {
+          'foo' => 'foo_source',
+          'bar' => 'bar_source'
+        }
+      })
 
-    after do
-      allow(File).to receive(:read).and_call_original
-    end
-
-    it 'should try to read the absolute path' do
-      turplefile_path = File.join(File.expand_path('~'), 'Turplefile')
-      expect(File).to receive(:read).with turplefile_path
+      @source_new_calls = []
+      allow(Turple::Source).to receive(:new) do |location, name|
+        @source_new_calls << "#{name}: #{location}"
+      end
 
       Turple::Core.load_turplefile '~'
     end
 
-    context 'when sources exist' do
-      before do
-        allow(Turple::Source).to receive(:new)
-        allow(YAML).to receive(:load).and_return({
-          sources: {
-            foo: 'foo_source',
-            bar: 'bar_source'
-          }
-        })
+    it 'should read the absolute path' do
+      turplefile_path = File.join(ENV['HOME'], 'Turplefile')
 
-        Turple::Core.load_turplefile '~'
-      end
-
-      after do
-        allow(Turple::Source).to receive(:new).and_call_original
-      end
-
-      it 'should initialize each source' do
-        expect(Turple::Source).to have_received(:new).exactly(2).times
-        expect(Turple::Source).to have_received(:new).with 'foo_source', :foo
-        expect(Turple::Source).to have_received(:new).with 'bar_source', :bar
-      end
+      expect(File).to have_received(:read).with(turplefile_path)
     end
 
-    context 'when project/template exists' do
-      before do
-        allow(Turple::Core).to receive(:settings=)
-        allow(YAML).to receive(:load).and_return({ foo: 'foo' })
-
-        Turple::Core.load_turplefile '~'
-      end
-
-      after do
-        allow(Turple::Core).to receive(:settings=).and_call_original
-      end
-
-      it 'should update the settings' do
-        expect(Turple::Core).to have_received(:settings=).with({ foo: 'foo' })
-      end
+    it 'should initialize each source and remove them from the settings' do
+      expect(@source_new_calls).to eq ['foo: foo_source', 'bar: bar_source']
+      expect(Turple::Source).to have_received(:new).exactly(2).times.ordered
+      expect(Turple::Core).to have_received(:settings=).with({ project: :project }).ordered
     end
   end
 

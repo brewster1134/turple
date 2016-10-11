@@ -1,7 +1,17 @@
 engines:
+  # https://github.com/rubysec/bundler-audit
+  bundler-audit:
+    enabled: true
+
+  # https://github.com/codeclimate/codeclimate-fixme
+  fixme:
+    enabled: true
+
+  # http://rubocop.readthedocs.io/en/latest/
   rubocop:
     enabled: true
 
 ratings:
   paths:
-    - "**.rb"
+    - '**.rb'
+    - Gemfile.lock

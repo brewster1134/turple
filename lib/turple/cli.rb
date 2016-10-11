@@ -12,13 +12,15 @@ class Turple::Cli < Thor
   desc 'ate', I18n.t('turple.cli.ate.desc')
   # @!visibility private
   def ate
+    Turple::Core.load_turplefile ENV['HOME']
+
     # Request information from user
     template = self.ask_user_for_source_or_template
     project = self.ask_user_for_project
     data = self.ask_user_for_data template, project
 
     # Apply user data to the project
-    project.apply_data data
+    Turple::Core.settings = { project: { data: data }}
 
     # Start turple with valid data
     Turple::Core.new template: template, project: project
@@ -102,30 +104,26 @@ class Turple::Cli < Thor
       template = nil
 
       # collect all templates and build cli choices to show the user
-      choices = {}
+      choices = []
       Turple::Source.all.each do |source|
         CliMiami::S.ay source.name
 
         source.templates.each do |template|
           CliMiami::S.ay template.name
 
-          key = "#{source.name}##{template.name}"
-          value = template
-          choices[key] = value
+          choices << template
         end
       end
 
       # prompt user for template
       until template.instance_of? Turple::Template
-        response = CliMiami::A.sk(I18n.t('turple.cli.ask_user_for_template.prompt'),
+        choice_index = CliMiami::A.sk(I18n.t('turple.cli.ask_user_for_template.prompt'),
           type: :multiple_choice,
           max: 1,
           choices: choices
-        ).value.first
+        ).value.first.to_i - 1
 
-        break if response == ''
-
-        template = choices[response]
+        template = choices[choice_index]
       end
 
       return template
@@ -135,18 +133,24 @@ class Turple::Cli < Thor
     # @return [Turple::Project]
     #
     def ask_user_for_project
-      project = nil
-
-      until project.instance_of? Turple::Project
-        response = CliMiami::A.sk(I18n.t('turple.cli.ask_user_for_project.prompt')).value
-
-        # allow user to exit without adding a new project
-        break if response == ''
-
-        # initialize a new project
-        project = Turple::Project.new response
+      name = ''
+      until !name.empty?
+        response = CliMiami::A.sk(I18n.t('turple.cli.ask_user_for_project.name_prompt')).value
+        name = response
       end
 
+      path = nil
+      until path.is_a?(Pathname) && !path.to_s.empty? && path.exist? && path.directory?
+        response = CliMiami::A.sk(I18n.t('turple.cli.ask_user_for_project.path_prompt')).value
+        path = Pathname.new response
+
+        if !path.to_s.empty? && !path.exist?
+          FileUtils.mkdir_p path
+        end
+      end
+
+      # initialize a new project
+      project = Turple::Project.new name: name, path: path, data: :cli
       return project
     end
 

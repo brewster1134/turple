@@ -1,10 +1,9 @@
-[![gem version](https://badge.fury.io/rb/Turple.svg)](https://badge.fury.io/rb/Turple)
-[![dependencies](https://gemnasium.com/brewster1134/Turple.svg)](https://gemnasium.com/brewster1134/Turple)
-[![docs](http://inch-ci.org/github/brewster1134/Turple.svg?branch=master)](http://inch-ci.org/github/brewster1134/Turple)
-[![build](https://travis-ci.org/brewster1134/Turple.svg?branch=master)](https://travis-ci.org/brewster1134/Turple)
-[![coverage](https://coveralls.io/repos/brewster1134/Turple/badge.svg?branch=master)](https://coveralls.io/r/brewster1134/Turple?branch=master)
-[![code climate](https://codeclimate.com/github/brewster1134/Turple/badges/gpa.svg)](https://codeclimate.com/github/brewster1134/Turple)
-[![omniref](https://www.omniref.com/github/brewster1134/Turple.png)](https://www.omniref.com/github/brewster1134/Turple)
+[![gem version](https://badge.fury.io/rb/turple.svg)](https://badge.fury.io/rb/turple)
+[![dependencies](https://gemnasium.com/brewster1134/turple.svg)](https://gemnasium.com/brewster1134/turple)
+[![docs](http://inch-ci.org/github/brewster1134/turple.svg?branch=master)](http://inch-ci.org/github/brewster1134/turple)
+[![build](https://travis-ci.org/brewster1134/turple.svg?branch=master)](https://travis-ci.org/brewster1134/turple)
+[![coverage](https://coveralls.io/repos/brewster1134/turple/badge.svg?branch=master)](https://coveralls.io/r/brewster1134/turple?branch=master)
+[![codeclimate](https://codeclimate.com/github/brewster1134/turple/badges/gpa.svg)](https://codeclimate.com/github/brewster1134/turple)
 
 # Turple
 ###### Build projects from complex directory structures

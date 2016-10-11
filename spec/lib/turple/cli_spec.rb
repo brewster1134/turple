@@ -9,15 +9,20 @@ describe Turple::Cli do
   end
 
   before do
-    @ask_instance = CliMiami::A.allocate
+    @ask_instance = instance_double CliMiami::A
     allow(CliMiami::A).to receive(:sk).and_return @ask_instance
+    allow(Turple::Core).to receive :load_turplefile
     allow(Turple::Core).to receive :new
+    allow(Turple::Core).to receive :settings=
     allow(Turple::Source).to receive :new
   end
 
   after do
     allow(CliMiami::A).to receive(:sk).and_call_original
+    allow(Turple::Core).to receive(:load_turplefile).and_call_original
     allow(Turple::Core).to receive(:new).and_call_original
+    allow(Turple::Core).to receive(:settings=).and_call_original
+    allow(Turple::Project).to receive(:new).and_call_original
     allow(Turple::Source).to receive(:new).and_call_original
   end
 
@@ -28,20 +33,20 @@ describe Turple::Cli do
       allow(@cli).to receive(:ask_user_for_source_or_template).and_return @template_instance
       allow(@cli).to receive(:ask_user_for_project).and_return @project_instance
       allow(@cli).to receive(:ask_user_for_data).and_return({ foo: 'foo' })
-      allow(@project_instance).to receive :apply_data
+
+      @cli.ate
     end
 
     it 'should prompt user for action and start Turple' do
-      expect(@cli).to receive(:ask_user_for_source_or_template).ordered
-      expect(@cli).to receive(:ask_user_for_project).ordered
-      expect(@cli).to receive(:ask_user_for_data).with(@template_instance, @project_instance).ordered
-      expect(@project_instance).to receive(:apply_data).with({ foo: 'foo' }).ordered
-      expect(Turple::Core).to receive(:new).with({
+      expect(Turple::Core).to have_received(:load_turplefile).with(ENV['HOME']).ordered
+      expect(@cli).to have_received(:ask_user_for_source_or_template).ordered
+      expect(@cli).to have_received(:ask_user_for_project).ordered
+      expect(@cli).to have_received(:ask_user_for_data).with(@template_instance, @project_instance).ordered
+      expect(Turple::Core).to have_received(:settings=).with({ project: { data: { foo: 'foo' }}}).ordered
+      expect(Turple::Core).to have_received(:new).with({
         template: @template_instance,
         project: @project_instance
       }).ordered
-
-      @cli.ate
     end
   end
 
@@ -84,24 +89,19 @@ describe Turple::Cli do
     end
 
     it 'should return a Turple Template' do
-      expect(@template).to be_a Turple::Template
+      expect(@template).to eq @template_instance
     end
   end
 
   describe '#ask_user_for_source' do
-    before do
-      allow(Turple::Source).to receive(:all).and_return [@source_instance]
-    end
-
     context 'when entering a source location' do
       before do
         @souce_new_args = []
-
-        allow(@ask_instance).to receive(:value).and_return 'invalid_source', 'valid_source'
-
         allow(Turple::Source).to receive(:new) do |arg|
           @souce_new_args << arg
-        end.and_return nil, Turple::Source.allocate
+        end.and_return nil, @source_instance
+
+        allow(@ask_instance).to receive(:value).and_return 'invalid_source', 'valid_source'
 
         @source = @cli.ask_user_for_source
       end
@@ -110,7 +110,7 @@ describe Turple::Cli do
         expect(@ask_instance).to have_received(:value).twice
         expect(Turple::Source).to have_received(:new).twice
         expect(@souce_new_args).to eq [ 'invalid_source', 'valid_source' ]
-        expect(@source).to be_a Turple::Source
+        expect(@source).to eq @source_instance
       end
     end
 
@@ -131,65 +131,51 @@ describe Turple::Cli do
 
   describe '#ask_user_for_template' do
     before do
+      @cli_user_output = []
+      allow(CliMiami::S).to receive(:ay) do |arg|
+        @cli_user_output << arg
+      end
+
+      allow(@ask_instance).to receive(:value).and_return ['1']
       allow(@source_instance).to receive(:templates).and_return [@template_instance]
       allow(@source_instance).to receive(:name).and_return 'Source Name'
       allow(@template_instance).to receive(:name).and_return 'Template Name'
       allow(Turple::Source).to receive(:all).and_return [@source_instance]
+
+      @template = @cli.ask_user_for_template
     end
 
-    context 'when selecting a template' do
-      before do
-        allow(@ask_instance).to receive(:value).and_return ['Source Name#Template Name']
-
-        @template = @cli.ask_user_for_template
-      end
-
-      it 'should show user templates, and prompt for selection' do
-        expect(@ask_instance).to have_received(:value).ordered
-        expect(@template).to be_a Turple::Template
-      end
-    end
-
-    context 'when exiting' do
-      before do
-        allow(@ask_instance).to receive(:value).and_return ['']
-
-        @template = @cli.ask_user_for_template
-      end
-
-      it 'should show user templates, and allow not selecting a template' do
-        expect(@template).to be_nil
-      end
+    it 'should show user templates, and prompt for selection' do
+      expect(CliMiami::S).to have_received(:ay).twice.ordered
+      expect(CliMiami::A).to have_received(:sk).ordered
+      expect(@cli_user_output).to eq [
+        'Source Name',
+        'Template Name'
+      ]
+      expect(@template).to eq @template_instance
     end
   end
 
   describe '#ask_user_for_project' do
     before do
-      @cli_method_calls = []
-
-      allow(@ask_instance).to receive(:value) do |arg|
-        @cli_method_calls << :ask_value
-      end.and_return 'invalid_project_path', 'valid_project_path'
-
-      allow(Turple::Project).to receive(:new) do |arg|
-        @cli_method_calls << :project_new
-      end.and_return nil, Turple::Project.allocate
+      @project_path = Pathname.new './project/path'
+      allow(@ask_instance).to receive(:value).and_return '', 'Project Name', '', './project/path'
+      allow(Turple::Project).to receive(:new).and_return @project_instance
 
       @project = @cli.ask_user_for_project
     end
 
-    it 'shoud prompt until valid project' do
-      expect(@cli_method_calls).to eq [
-        :ask_value,
-        :project_new,
-        :ask_value,
-        :project_new
-      ]
+    it 'shoud prompt for project meta data' do
+      expect(CliMiami::A).to have_received(:sk).exactly(4).times.ordered
+      expect(Turple::Project).to have_received(:new).with({
+        name: 'Project Name',
+        path: @project_path,
+        data: :cli
+      }).ordered
     end
 
-    it 'should return a Turple Template' do
-      expect(@ask_instance).to have_received(:value).twice
-      expect(@project).to be_a Turple::Project
+    it 'should return a Turple Project' do
+      expect(@project).to eq @project_instance
     end
   end
 
@@ -247,17 +233,13 @@ describe Turple::Cli do
 
   describe '#ask_user_for_data_for_key' do
     before do
-      @cli_method_calls = []
-      allow(CliMiami::A).to receive(:sk) do |arg|
-        @cli_method_calls << arg
-      end.and_return @ask_instance
       allow(@ask_instance).to receive(:value).and_return '', 'John'
 
       @value = @cli.ask_user_for_data_for_key 'Name'
     end
 
-    it 'should prompt user for a value' do
-      expect(@cli_method_calls).to eq ['Name', 'Name']
+    it 'should prompt user until they enter a value' do
+      expect(CliMiami::A).to have_received(:sk).with('Name').twice
     end
 
     it 'should return the users value' do
