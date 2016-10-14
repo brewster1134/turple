@@ -1,7 +1,7 @@
 #
 # Turple::Cli
 # Defines command line options and handles collecting information from the user
-# @see help Run `turple help` from the command line
+# @see  help Run `turple help` from the command line
 #
 # Dependencies
 require 'i18n'
@@ -15,12 +15,8 @@ class Turple::Cli < Thor
     Turple::Core.load_turplefile ENV['HOME']
 
     # Request information from user
-    template = self.ask_user_for_source_or_template
-    project = self.ask_user_for_project
-    data = self.ask_user_for_data template, project
-
-    # Apply user data to the project
-    Turple::Core.settings = { project: { data: data }}
+    template  = self.ask_user_for_source_or_template
+    project   = self.ask_user_for_project template
 
     # Start turple with valid data
     Turple::Core.new template: template, project: project
@@ -46,18 +42,24 @@ class Turple::Cli < Thor
     #
 
     # Ask the user to choose a template, or enter new sources
-    # @return [Turple::Template]
+    # @return [Turple::Template]  A Turple Template instance to build the project with
     #
     def ask_user_for_source_or_template
-      template = nil
       source_i18n = I18n.t('turple.cli.ask_user_for_source_or_template.source')
       template_i18n = I18n.t('turple.cli.ask_user_for_source_or_template.template')
 
+      template = nil
       until template.instance_of? Turple::Template
-        self.show_user_templates
+        Turple::Source.all.each do |source|
+          CliMiami::S.ay source.name
+
+          source.templates.each do |template|
+            CliMiami::S.ay template.name
+          end
+        end
 
         # ask user what they want to do
-        response = CliMiami::A.sk(I18n.t('turple.cli.ask_user_for_source_or_template.prompt'),
+        source_or_template = CliMiami::A.sk(I18n.t('turple.cli.ask_user_for_source_or_template.prompt'),
           type: :multiple_choice,
           max: 1,
           choices: {
@@ -67,7 +69,7 @@ class Turple::Cli < Thor
         ).value.first
 
         # call method based on user's response
-        case response
+        case source_or_template
         when :source
           self.ask_user_for_source
         when :template
@@ -79,120 +81,103 @@ class Turple::Cli < Thor
     end
 
     # Prompt user to enter a new source location
-    # @return [Turple::Source]
+    # @return [Turple::Source]  A supported source location
+    # @see  http://www.rubydoc.info/github/brewster1134/sourcerer/master
     #
     def ask_user_for_source
       source = nil
-
       until source.instance_of? Turple::Source
-        response = CliMiami::A.sk(I18n.t('turple.cli.ask_user_for_source.prompt')).value
+        source_location = CliMiami::A.sk(I18n.t('turple.cli.ask_user_for_source.prompt')).value
 
         # allow user to exit without adding a new source
-        break if response == ''
+        break if source_location == ''
 
         # initialize a new source
-        source = Turple::Source.new response
+        source = Turple::Source.new source_location
       end
 
       return source
     end
 
     # Prompt user to select an existing template
-    # @return [Turple::Template]
+    # @return [Turple::Template]  A Turple Template instance to build the project with
     #
     def ask_user_for_template
-      template = nil
-
       # collect all templates and build cli choices to show the user
-      choices = []
+      templates = []
       Turple::Source.all.each do |source|
         CliMiami::S.ay source.name
 
         source.templates.each do |template|
           CliMiami::S.ay template.name
 
-          choices << template
+          templates << template
         end
       end
 
       # prompt user for template
+      template = nil
       until template.instance_of? Turple::Template
-        choice_index = CliMiami::A.sk(I18n.t('turple.cli.ask_user_for_template.prompt'),
+        template_index = CliMiami::A.sk(I18n.t('turple.cli.ask_user_for_template.prompt'),
           type: :multiple_choice,
           max: 1,
-          choices: choices
+          choices: templates
         ).value.first.to_i - 1
 
-        template = choices[choice_index]
+        template = templates[template_index]
       end
 
       return template
     end
 
     # Prompt user for the new project location
-    # @return [Turple::Project]
+    # @param  template  [Turple::Template]  The Turple Template to collect data for
+    # @return [Turple::Project] A complete Turple Project ready to be created
     #
-    def ask_user_for_project
-      name = ''
-      until !name.empty?
-        response = CliMiami::A.sk(I18n.t('turple.cli.ask_user_for_project.name_prompt')).value
-        name = response
+    def ask_user_for_project template
+      project_name = ''
+      until !project_name.empty?
+        project_name = CliMiami::A.sk(I18n.t('turple.cli.ask_user_for_project.name_prompt')).value
       end
 
-      path = nil
-      until path.is_a?(Pathname) && !path.to_s.empty? && path.exist? && path.directory?
-        response = CliMiami::A.sk(I18n.t('turple.cli.ask_user_for_project.path_prompt')).value
-        path = Pathname.new response
-
-        if !path.to_s.empty? && !path.exist?
-          FileUtils.mkdir_p path
-        end
+      project_path = nil
+      until project_path.is_a?(Pathname) && !project_path.to_s.empty?
+        project_path = Pathname.new CliMiami::A.sk(I18n.t('turple.cli.ask_user_for_project.path_prompt')).value
       end
+
+      # make sure project directory exists
+      FileUtils.mkdir_p project_path unless project_path.exist?
+
+      # load Turplefile if it exists
+      Turple::Core.load_turplefile project_path
+
+      project_data = ask_user_for_data template.required_data, Turple::Core.settings[:project][:data]
 
       # initialize a new project
-      project = Turple::Project.new name: name, path: path, data: :cli
-      return project
+      return Turple::Project.new name: project_name, path: project_path, data: project_data, template: template
     end
 
-    # Collect data needed to prompt the user for missing data
-    # @param template [Turple::Template] The template being used
-    # @param project [Turple::Project] The project being used
-    # @return [Hash]
+    # Prompt user for missing data
+    # @param  required_data [Hash]  All required data for template
+    # @param  existing_data [Hash]  Any data already set on the project
+    # @param  [Hash]  The entered users data mirroring the required data object
     #
-    def ask_user_for_data template, project
-      required_data = template.required_data
-      existing_data = project.data
-
-      ask_user_for_data_for_hash required_data, existing_data
-    end
-
-    # Process data and lookup descriptions of missing data
-    # @param required_data [Hash] All required data for template
-    # @param existing_data [Hash] Any data already set on the project
-    # @param parent_keys [Array] Array of keys used for a back up description
-    # @param [Hash] The entered users data mirroring the required data object
-    #
-    def ask_user_for_data_for_hash required_data, existing_data, parent_keys = []
-      # ensure an empty hash
+    def ask_user_for_data required_data, existing_data
       existing_data ||= {}
       new_data = {}
 
       required_data.keys.inject(new_data) do |user_data, key|
-
         # if value already exists
         user_data[key] = if existing_data[key]
           existing_data[key]
 
         # call recursively for each nested hash
         elsif required_data[key].is_a? Hash
-          # keep tracking of parent keys in case we need them if a description is missing
-          parent_keys << key
-
-          ask_user_for_data_for_hash required_data[key], existing_data[key], parent_keys
+          ask_user_for_data required_data[key], existing_data[key]
 
         # prompt user for value
         else
-          ask_user_for_data_for_key required_data[key]
+          ask_user_for_data_value required_data[key]
         end
 
         # return user_data
@@ -203,34 +188,16 @@ class Turple::Cli < Thor
     end
 
     # Prompt user for a single value
-    # @param description [String] Text to prompt the user with what to enter
-    # @return [String] The user provided value
+    # @param  description [String]  Text to prompt the user with what to enter
+    # @return [String]  The user provided value
     #
-    def ask_user_for_data_for_key description
+    def ask_user_for_data_value description
       value = nil
-
       until !value.nil? && !value.empty?
         value = CliMiami::A.sk(description).value
       end
 
       return value
-    end
-
-    #
-    # SHOW METHODS
-    #
-
-    # Show user all templates from all sources
-    #
-    def show_user_templates
-      Turple::Source.all.each do |source|
-        source_name = source.name
-        CliMiami::S.ay source_name
-
-        source.templates.each do |template|
-          CliMiami::S.ay "#{source_name}##{template.name}"
-        end
-      end
     end
   end
 end

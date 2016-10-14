@@ -2,9 +2,9 @@
 require 'active_support/core_ext/hash/deep_merge'
 require 'active_support/core_ext/hash/keys'
 require 'active_support/core_ext/object/deep_dup'
-# require 'fileutils'
+require 'active_support/inflector'
+
 require 'i18n'
-# require 'pathname'
 # require 'recursive-open-struct'
 # require 'tmpdir'
 require 'yaml'
