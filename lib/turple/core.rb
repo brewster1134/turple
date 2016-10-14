@@ -8,70 +8,69 @@ class Turple::Core
 
   # Main entry point into Turple
   # @param [Hash] args
-  # @option args [String] :source   Location of a Turple source
-  # @option args [String] :template Name of a Turple template
-  # @option args [Hash]   :project  Hash with project name & path
+  # @option args [String]                   :source   ID, Name, or Path of a Turple Source
+  # @option args [Turple::Template, String] :template Turple::Template instance -OR- ID, Name, or Path of a Turple Template
+  # @option args [Turple::Project, Hash]    :project  Turple::Project instance -OR- Hash with Turple Project meta data
+  # @return [Turple::Project]
   #
   def initialize args
-    # when a source is passed...
+    # search for the source, or initialize one if it doesn't already exist
+    source = nil
     if args[:source]
-      source = Turple::Source.find args[:source]
-
-      # if no exisitng source is found, initialize a new one
-      unless source.is_a? Turple::Source
-        source = Turple::Source.new args[:source], :user
-      end
-
-      args[:source] = source
+      source = Turple::Source.find(args[:source]) || Turple::Source.new(args[:source])
     end
 
-    # when a template is passed...
-    # * if a Turple::Template, it is coming from the Turple command line
-    # * if a string...
-    #   * look for existing template
-    #   * initialize new template
-    if args[:template].is_a? String
-      template = nil
+    # if the template is already a Turple::Template, it was created from the command line
+    template = nil
+    if args[:template].is_a? Turple::Template
+      template = args[:template]
 
-      # get template from passed source
-      if args[:source].is_a? Turple::Source
-        template = args[:source].find_template args[:template]
+    # if the template is a string, search for it or create a new one
+    elsif args[:template].is_a? String
 
-        # raise an error since the user explicitly wanted to find a template in a specific source
+      # if explicit source was passed
+      if source.is_a? Turple::Source
+        template = source.find_template args[:template]
+
+        # if no template is found in specified source, raise an error
         unless template.is_a? Turple::Template
-          raise Turple::Error.new I18n.t('turple.source.find_template.not_found', source_name: args[:source].name, template_name: args[:template])
+          raise Turple::Error.new I18n.t('turple.source.find_template.not_found', source_name: source.name, template_name: args[:template])
         end
 
-      # try to find an existing template, or initialize a new one
+      # search for the template, or initialize a new one if it doesn't already exist
       else
         template = Turple::Template.find(args[:template]) || Turple::Template.new(args[:template])
       end
-
-      args[:template] = template
     end
 
-    # when a project is passed...
-    # * if a Turple::Project, it is coming from the Turple command line
-    # * if a Hash, initialize a new project with the hash contents
-    if args[:project].is_a? Hash
-      args[:project] = Turple::Project.new name: args[:project][:name], path: args[:project][:path], data: args[:project][:data]
+    # if the project is already a Turple::Project, it was created from the command line
+    project = nil
+    if args[:project].is_a? Turple::Project
+      project = args[:project]
+
+    # if the project is a hash, create a new one
+    elsif args[:project].is_a? Hash
+      project = Turple::Project.new name: args[:project][:name], path: args[:project][:path], data: args[:project][:data], template: template
     end
 
-    self.interpolate args[:template], args[:project]
+    return project
   end
 
-  # Handles the process of validating data and interpolating
-  # @param template [Turple::Template]  The template used to create the project
-  # @param project  [Turple::Project]   The project to create
+  # Load a Turplefile from the provided path
+  # @param local_dir [String] Local file system directory path
+  # @param file_name [String] Name of the YAML file
+  # @return [Hash]  Global settings or false if nothing found
   #
-  def interpolate template, project
-  end
+  def self.load_turplefile local_dir, file_name = 'Turplefile'
+    absolute_path = File.expand_path File.join(local_dir, file_name)
+    turplefile = YAML.load(File.read(absolute_path)).deep_symbolize_keys
 
-  # Turple global settings hash
-  # @return [Hash] Global settings
-  #
-  def self.settings
-    @@settings
+    sources = turplefile[:sources] || []
+    sources.each do |id, path|
+      Turple::Source.new path, id
+    end
+
+    self.settings = turplefile
   end
 
   # Recursively merge settings into the Turple global settings hash
@@ -82,22 +81,11 @@ class Turple::Core
     @@settings.deep_merge! settings.deep_symbolize_keys
   end
 
-  # Load a Turplefile from the provided path
-  # @param local_dir [String] File path to a local directory
-  # @return [Hash, false]     Global settings or false if nothing found
+  # Turple global settings hash
+  # @return [Hash] Global settings
   #
-  def self.load_turplefile local_dir
-    absolute_path = File.join(File.expand_path(local_dir), 'Turplefile')
-    turplefile = YAML.load(File.read(absolute_path)).deep_symbolize_keys
-
-    sources = turplefile.delete(:sources) || []
-    sources.each do |name, location|
-      Turple::Source.new location, name
-    end
-
-    self.settings = turplefile
-  rescue
-    return false
+  def self.settings
+    @@settings
   end
 end
 
@@ -223,7 +211,7 @@ end
 #   def self.load_turplefile turplefile_path, update_settings = true
 #     turplefile_path = File.expand_path turplefile_path
 #
-#     # return false if file doesnt exist
+#     # return false if file doesn't exist
 #     return false unless File.exists? turplefile_path
 #
 #     # read turplefile to ruby object

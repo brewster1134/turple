@@ -1,18 +1,24 @@
 describe Turple::Core do
-  before :each do
+  before do
     @core = Turple::Core.allocate
+    @error_instance = Turple::Error.allocate
     @source_instance = Turple::Source.allocate
     @template_instance = Turple::Template.allocate
+    allow(Turple::Error).to receive(:new).and_return @error_instance
   end
 
   after do
     allow(File).to receive(:read).and_call_original
+    allow(Turple::Error).to receive(:new).and_call_original
+    allow(Turple::Project).to receive(:new).and_call_original
+    allow(Turple::Source).to receive(:find).and_call_original
     allow(Turple::Source).to receive(:new).and_call_original
+    allow(Turple::Template).to receive(:find).and_call_original
+    allow(Turple::Template).to receive(:new).and_call_original
   end
 
   describe '#initialize' do
     before do
-      allow(@core).to receive(:interpolate)
       allow(Turple::Project).to receive(:new)
       allow(Turple::Source).to receive(:find)
       allow(Turple::Source).to receive(:new)
@@ -20,21 +26,13 @@ describe Turple::Core do
       allow(Turple::Template).to receive(:new)
     end
 
-    after do
-      allow(Turple::Project).to receive(:new).and_call_original
-      allow(Turple::Source).to receive(:find).and_call_original
-      allow(Turple::Source).to receive(:new).and_call_original
-      allow(Turple::Template).to receive(:find).and_call_original
-      allow(Turple::Template).to receive(:new).and_call_original
-    end
-
     context 'when source is passed' do
       context 'when source exists' do
         it 'should find the existing source' do
           allow(Turple::Source).to receive(:find).and_return @source_instance
 
-          expect(Turple::Source).to receive(:find).with('user_source_existing').ordered
-          expect(Turple::Source).to_not receive(:new).ordered
+          expect(Turple::Source).to receive(:find).with('user_source_existing')
+          expect(Turple::Source).to_not receive(:new)
 
           @core.send :initialize, source: 'user_source_existing'
         end
@@ -45,7 +43,7 @@ describe Turple::Core do
           allow(Turple::Source).to receive(:find).and_return nil
 
           expect(Turple::Source).to receive(:find).with('user_source_new').ordered
-          expect(Turple::Source).to receive(:new).with('user_source_new', :user).ordered
+          expect(Turple::Source).to receive(:new).with('user_source_new').ordered
 
           @core.send :initialize, source: 'user_source_new'
         end
@@ -62,9 +60,9 @@ describe Turple::Core do
           it 'should find the source template' do
             allow(@source_instance).to receive(:find_template).and_return @template_instance
 
-            expect(@source_instance).to receive(:find_template).with('user_template').ordered
-            expect(Turple::Template).to_not receive(:find).ordered
-            expect(Turple::Template).to_not receive(:new).ordered
+            expect(@source_instance).to receive(:find_template).with('user_template')
+            expect(Turple::Template).to_not receive(:find)
+            expect(Turple::Template).to_not receive(:new)
 
             @core.send :initialize, template: 'user_template', source: 'user_source'
           end
@@ -74,11 +72,11 @@ describe Turple::Core do
           it 'should raise an error' do
             allow(@source_instance).to receive(:find_template).and_return nil
 
-            expect(@source_instance).to receive(:find_template).with('user_template').ordered
-            expect(Turple::Template).to_not receive(:find).ordered
-            expect(Turple::Template).to_not receive(:new).ordered
-            expect{ @core.send(:initialize, template: 'user_template', source: 'user_source') }.
-              to raise_error Turple::Error
+            expect(@source_instance).to receive(:find_template).with('user_template')
+            expect(Turple::Template).to_not receive(:find)
+            expect(Turple::Template).to_not receive(:new)
+
+            expect{ @core.send(:initialize, template: 'user_template', source: 'user_source') }.to raise_error Turple::Error
           end
         end
       end
@@ -109,19 +107,20 @@ describe Turple::Core do
       end
     end
 
-    context 'when project is passed as a string' do
+    context 'when project is passed as a hash' do
       it 'should initialize a new project' do
         allow(Turple::Project).to receive(:new)
 
-        expect(Turple::Project).to receive(:new).with 'local_project_path'
+        expect(Turple::Project).to receive(:new).with({
+          name: :name,
+          path: :path,
+          data: :data,
+          template: @template_instance
+        })
 
-        @core.send :initialize, project: 'local_project_path'
+        @core.send :initialize, template: @template_instance, project: { name: :name, path: :path, data: :data }
       end
     end
-  end
-
-  describe '#interpolate' do
-    pending 'asd'
   end
 
   describe '.load_turplefile' do
@@ -153,7 +152,7 @@ describe Turple::Core do
     it 'should initialize each source and remove them from the settings' do
       expect(@source_new_calls).to eq ['foo: foo_source', 'bar: bar_source']
       expect(Turple::Source).to have_received(:new).exactly(2).times.ordered
-      expect(Turple::Core).to have_received(:settings=).with({ project: :project }).ordered
+      expect(Turple::Core).to have_received(:settings=).with({ project: :project, sources: { foo: 'foo_source', bar: 'bar_source' }}).ordered
     end
   end
 
