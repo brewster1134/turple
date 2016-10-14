@@ -22,10 +22,6 @@ module Turple
     Turple::Core.load_turplefile ENV['HOME']
     Turple::Core.new args
   end
-
-  def self.version
-    Turple::VERSION
-  end
 end
 
 # TURPLE LIBRARY
@@ -34,4 +30,4 @@ require 'turple/error'
 require 'turple/project'
 require 'turple/source'
 require 'turple/template'
-require 'turple/version'
+require 'turple/metadata'

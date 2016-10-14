@@ -6,7 +6,7 @@
 [![codeclimate](https://codeclimate.com/github/brewster1134/turple/badges/gpa.svg)](https://codeclimate.com/github/brewster1134/turple)
 
 # Turple
-###### Build projects from complex directory structures
+###### Build templates & Create new projects from highly-customizable, complex directory structures
 ---
 Most template solutions process the contents of a single file. _**But Turple...**_
 ###### Turple can...
@@ -79,7 +79,7 @@ Or to make things even quicker, I could just edit the yaml file in the project w
 
 # TODO: ALL THE DOCUMENTATION BELOW NEEDS UPDATED
 
-
+http://www.rubydoc.info/github/brewster1134/turple/master/frames
 
 
 ### Turplefile

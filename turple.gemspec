@@ -1,7 +1,7 @@
 # coding: utf-8
 $LOAD_PATH << File.expand_path('../lib', __FILE__)
 require 'date'
-require 'turple/version'
+require 'turple/metadata'
 
 Gem::Specification.new do |s|
   s.author      = 'Ryan Brewster'
@@ -12,7 +12,7 @@ Gem::Specification.new do |s|
   s.homepage    = 'https://github.com/brewster1134/turple'
   s.license     = 'WTFPL'
   s.name        = 'turple'
-  s.summary     = 'Highly customizable template interpolation'
+  s.summary     = Turple::SUMMARY
   s.test_files  = Dir['spec/**/*']
   s.version     = Turple::VERSION
 
@@ -29,10 +29,7 @@ Gem::Specification.new do |s|
   s.add_development_dependency 'guard-bundler'
   s.add_development_dependency 'guard-rubocop'
   s.add_development_dependency 'guard-rspec'
-  s.add_development_dependency 'listen', '3.0.8'
   s.add_development_dependency 'rspec'
-  s.add_development_dependency 'ruby_dep', '1.3.1'
   s.add_development_dependency 'terminal-notifier'
   s.add_development_dependency 'terminal-notifier-guard'
-  s.add_development_dependency 'yard'
 end

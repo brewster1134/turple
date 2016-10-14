@@ -4,3 +4,26 @@ script: bundle exec rspec
 rvm:
   - 2.0.0-p247
   - 2.3.1
+deploy:
+  - provider: releases
+    skip_cleanup: true
+    api_key:
+      secure: OhtAiJ+pGLrXRzFNM/TksQhJrjZCK/8A2HHUk2Na/E0kVfpg83OuIKUJEAbv6vGBgesKhBOcTeOuJL9uZ8x8QQ4rYY3Mjhdc0U1x6FeFWwGt7gxJ/P0mLX5wlanutTgcWe8fSV8q85ggM1oUsCmT3XTxngYLLxN0VY7gWP0BI/A=
+    file:
+      - bin/turple
+      - i18n/*.yml
+      - lib/**/*.rb
+      - README.md
+    on:
+      repo: brewster1134/turple
+      tags: true
+  - provider: rubygems
+    gem: turple
+    gemspec: turple.gemspec
+    skip_cleanup: true
+    api_key:
+      secure: Za3M0RvxmrSpaK8g7ctWsXmieZULL00AUsu9dIz9cIwVvP8z2kp2PDXwT6C8s4P2FZqe4hC8TzEUWaTQnHg+CImwYhP9ipm5mG8sXftbOOYK1eA7D2oKGoVWR564m9qxOzEG3NzxtvhZGOQ9wXIdFlhl2kHx8p4/H2JpwO8Nxzs=
+    on:
+      branch: master
+      repo: brewster1134/turple
+      tags: true
