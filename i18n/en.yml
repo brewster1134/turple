@@ -20,6 +20,12 @@ en: &en
         name_prompt: Project name
         path_prompt: Enter a path to the project you want to create
 
+    project:
+      initialize:
+        data_arg_missing: No project data was provided
+        path_arg_missing: No project directory was provided
+        template_arg_missing: No template was provided
+        missing_data: "There was not enough data to create your project. Make sure you have values for the following missing data: #{missing_data}"
     source:
       find_template:
         not_found: "The source %{source_name} could not the find the template %{template_name}"

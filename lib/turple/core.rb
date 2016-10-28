@@ -48,6 +48,12 @@ class Turple::Core
     if args[:project].is_a? Turple::Project
       project = args[:project]
 
+    # if the project is a string, treat string as path to project
+    elsif args[:project].is_a? String
+      Turple::Core.load_turplefile args[:project]
+      project_settings = Turple::Core.settings[:project]
+      project = Turple::Project.new name: project_settings[:name], path: File.expand_path(args[:project]), data: project_settings[:data], template: template
+
     # if the project is a hash, create a new one
     elsif args[:project].is_a? Hash
       project = Turple::Project.new name: args[:project][:name], path: args[:project][:path], data: args[:project][:data], template: template
@@ -66,8 +72,8 @@ class Turple::Core
     turplefile = YAML.load(File.read(absolute_path)).deep_symbolize_keys
 
     sources = turplefile[:sources] || []
-    sources.each do |id, path|
-      Turple::Source.new path, id
+    sources.each do |location|
+      Turple::Source.new location
     end
 
     self.settings = turplefile

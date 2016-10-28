@@ -1,5 +1,5 @@
 # coding: utf-8
-$LOAD_PATH << File.expand_path('../lib', __FILE__)
+$LOAD_PATH << File.join(File.dirname(__FILE__), 'lib')
 require 'date'
 require 'turple/metadata'
 
@@ -19,9 +19,10 @@ Gem::Specification.new do |s|
   s.required_ruby_version = Gem::Requirement.new '>= 2.0.0p247'
 
   s.add_runtime_dependency 'activesupport', '4.2.7.1'
-  s.add_runtime_dependency 'cli_miami', '~> 1.0.9.pre'
+  s.add_runtime_dependency 'cli_miami', '>= 0.0.0.pre'
   s.add_runtime_dependency 'i18n'
   s.add_runtime_dependency 'recursive-open-struct'
+  s.add_runtime_dependency 'sourcerer_', '>= 0.0.0.pre'
   s.add_runtime_dependency 'thor'
 
   s.add_development_dependency 'coveralls'

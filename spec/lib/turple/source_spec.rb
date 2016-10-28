@@ -1,5 +1,37 @@
 describe Turple::Source do
+  describe '#initialize' do
+    before do
+      allow(Dir).to receive(:mktmpdir)
+      allow(Sourcerer).to receive(:new)
+
+      @source_instance = Turple::Source.allocate
+      @source_instance.send :initialize, 'source_location'
+    end
+
+    after do
+      allow(Dir).to receive(:mktmpdir).and_call_original
+      allow(Sourcerer).to receive(:new).and_call_original
+    end
+
+    it 'should download the source to a tmp dir' do
+      allow(Dir).to receive(:mktmpdir).and_return '/tmp/source'
+
+      expect(Dir).to receive(:mktmpdir).with('source_location').ordered
+      expect(Sourcerer).to receive(:new).with('/tmp/source').ordered
+      expect(Turple::Core).to receive(:load_turplefile).with('/tmp/source').ordered
+    end
+
+    it 'should load the source Turplefile' do
+      skip
+    end
+
+    it 'should initialize all templates' do
+      expect(Turple::Template).to receive(:new).exactly(2).times
+      skip
+    end
+  end
 end
+
 # describe Turple::Source do
 #   before do
 #     @source_path = File.join(ROOT_DIR, 'spec', 'fixtures')

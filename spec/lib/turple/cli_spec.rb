@@ -13,7 +13,6 @@ describe Turple::Cli do
   after do
     allow(CliMiami::A).to receive(:sk).and_call_original
     allow(CliMiami::S).to receive(:ay).and_call_original
-    allow(FileUtils).to receive(:mkdir_p).and_call_original
     allow(Turple::Core).to receive(:load_turplefile).and_call_original
     allow(Turple::Core).to receive(:new).and_call_original
     allow(Turple::Core).to receive(:settings).and_call_original
@@ -200,10 +199,9 @@ describe Turple::Cli do
   describe '#ask_user_for_project' do
     before do
       @project_path = Pathname.new './project/path'
-      allow(@ask_instance).to receive(:value).and_return '', 'Project Name', '', './project/path'
+      allow(@ask_instance).to receive(:value).and_return '', './project/path', '', 'Project Name'
       allow(@template_instance).to receive(:required_data).and_return({ required: true })
       allow(@cli).to receive(:ask_user_for_data).and_return({ data: true })
-      allow(FileUtils).to receive(:mkdir_p)
       allow(Turple::Core).to receive(:load_turplefile)
       allow(Turple::Core).to receive(:settings).and_return({ project: { data: { existing: true }}})
       allow(Turple::Project).to receive(:new).and_return @project_instance
@@ -213,8 +211,6 @@ describe Turple::Cli do
 
     it 'shoud prompt for project meta data' do
       expect(CliMiami::A).to have_received(:sk).exactly(4).times.ordered
-      expect(FileUtils).to have_received(:mkdir_p).ordered
-      expect(Turple::Core).to have_received(:load_turplefile).ordered
       expect(@cli).to have_received(:ask_user_for_data).with({ required: true }, { existing: true }).ordered
       expect(Turple::Project).to have_received(:new).with({
         name: 'Project Name',
@@ -230,39 +226,51 @@ describe Turple::Cli do
   end
 
   describe '#ask_user_for_data' do
-    before do
-      @required_data = {
-        var: 'What is var?',
-        nested: {
-          var: 'What is nested var?'
+    context 'with existing data' do
+      before do
+        @required_data = {
+          var: 'What is var?',
+          nested: {
+            var: 'What is nested var?'
+          }
         }
-      }
 
-      @existing_data = {
-        existing_var: 'EXISTING VAR',
-        extra_var: 'EXTRA VAR'
-      }
-
-      @completed_data = {
-        var: 'VAR',
-        nested: {
-          var: 'NESTED VAR',
+        @existing_data = {
+          existing_var: 'EXISTING VAR',
+          extra_var: 'EXTRA VAR'
         }
-      }
 
-      allow(@cli).to receive(:ask_user_for_data).and_call_original
-      allow(@cli).to receive(:ask_user_for_data_value).and_return 'VAR', 'NESTED VAR'
+        @completed_data = {
+          var: 'VAR',
+          nested: {
+            var: 'NESTED VAR',
+          }
+        }
 
-      @data = @cli.ask_user_for_data @required_data, @existing_data
+        allow(@cli).to receive(:ask_user_for_data).and_call_original
+        allow(@cli).to receive(:ask_user_for_data_value).and_return 'VAR', 'NESTED VAR'
+
+        @data = @cli.ask_user_for_data @required_data, @existing_data
+      end
+
+      it 'should prompt user for missing data' do
+        expect(@cli).to have_received(:ask_user_for_data).exactly(2).times
+        expect(@cli).to have_received(:ask_user_for_data_value).exactly(2).times
+      end
+
+      it 'should return a hash' do
+        expect(@data).to eq @completed_data
+      end
     end
 
-    it 'should prompt user for missing data' do
-      expect(@cli).to have_received(:ask_user_for_data).exactly(2).times
-      expect(@cli).to have_received(:ask_user_for_data_value).exactly(2).times
-    end
+    context 'without existing data' do
+      it 'should allow nil' do
+        allow(@cli).to receive(:ask_user_for_data_value).and_return 'foo'
 
-    it 'should return a hash' do
-      expect(@data).to eq @completed_data
+        @data = @cli.ask_user_for_data({ foo: 'what is foo?' }, nil)
+
+        expect(@data).to eq({ foo: 'foo' })
+      end
     end
   end
 

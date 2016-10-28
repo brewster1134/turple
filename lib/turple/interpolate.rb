@@ -144,7 +144,7 @@ private
   def create_turplefile!
     # get new template name based on the first directory of the destination
     turplefile_path = File.join(@destination, 'Turplefile')
-    turplefile_object = Turple.turpleobject.deep_merge({
+    turplefile_object = Turple.settings.deep_merge({
       template: @template.name,
       :created_on => Date.today.to_s
     })

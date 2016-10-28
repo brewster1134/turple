@@ -3,6 +3,10 @@ Coveralls.wear!
 require 'turple'
 require 'turple/cli'
 
+I18n.load_path << File.expand_path(File.join('spec', 'fixtures', 'i18n.yml'))
+I18n.reload!
+I18n.locale = 'spec'
+
 # See http://rubydoc.info/gems/rspec-core/RSpec/Core/Configuration
 RSpec.configure do |config|
 # The settings below are suggested to provide a good initial experience

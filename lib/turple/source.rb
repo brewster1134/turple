@@ -2,7 +2,9 @@
 # Turple::Source
 #
 class Turple::Source
-  def initialize location, name = nil
+  attr_reader :location
+
+  def initialize location
   end
 
   def name
@@ -25,7 +27,7 @@ class Turple::Source
   end
 end
 
-Turple::Source.new 'brewster1134/turple-templates', :default
+Turple::Source.new 'brewster1134/turple-templates'
 
 # #
 # # Turple::Source
@@ -124,7 +126,7 @@ Turple::Source.new 'brewster1134/turple-templates', :default
 #
 #     def initialize source_name, source_path
 #       @template_paths = {}
-#       @source = 'asd'#Sourcerer.new(source_path)
+#       @source = Sourcerer.new(source_path)
 #
 #       # after source is created
 #       add_templates @source

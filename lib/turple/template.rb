@@ -1,8 +1,7 @@
 class Turple::Template
-  def initialize path
-  end
+  attr_reader :name, :source
 
-  def name
+  def initialize path
   end
 
   def required_data

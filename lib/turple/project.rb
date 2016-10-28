@@ -2,15 +2,60 @@
 # Turple::Project
 # Handles the details for the project to be generated
 class Turple::Project
-  def initialize local_path
-    Turple::Core.load_turplefile local_path
+  attr_reader :name
+
+  # Initialize a new Turple Project
+  # @param [Hash] args
+  # @option args [String]           :name     Name of the project
+  # @option args [String]           :path     Local path to the project directory
+  # @option args [Hash]             :data     A hash of all required data for the template
+  # @option args [Turple::Template] :template Template to validate data against
+  #
+  def initialize args
+    # validation
+    raise Turple::Error.new I18n.t('turple.project.initialize.data_arg_missing') unless args[:data] && args[:data].is_a?(Hash)
+    raise Turple::Error.new I18n.t('turple.project.initialize.path_arg_missing') unless args[:path]
+    raise Turple::Error.new I18n.t('turple.project.initialize.template_arg_missing') unless args[:template] && args[:template].is_a?(Turple::Template)
+
+    path = Pathname.new(args[:path]).expand_path
+    @name = args[:name] || path.basename.to_s.titleize
+    data = args[:data].deep_symbolize_keys
+    template = args[:template]
+
+    # check for missing data
+    missing_data_hash = missing_data template.required_data, data
+    unless missing_data_hash.empty?
+      raise Turple::Error.new I18n.t('turple.project.initialize.missing_data', missing_data: missing_data_hash.to_s)
+    end
+
+    # VALID! ready to create the project!
+
+    # create project if it doesn't exists`
+    unless path.exist?
+      FileUtils.mkdir_p path
+    end
+
+    write_to_turplefile({
+      project: {
+        name: @name,
+        source: template.source.location,
+        template: template.name,
+        created_on: Time.now.to_s,
+        data: data
+      }
+    })
+
+    interpolate template
   end
 
-  def settings
-    Turple::Core.settings[:project]
+  def missing_data required_data, project_data
+    required_data - project_data
   end
 
-  def data
+  def write_to_turplefile settings
+  end
+
+  def interpolate template
   end
 end
 

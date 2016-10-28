@@ -135,22 +135,21 @@ class Turple::Cli < Thor
     # @return [Turple::Project] A complete Turple Project ready to be created
     #
     def ask_user_for_project template
-      project_name = ''
-      until !project_name.empty?
-        project_name = CliMiami::A.sk(I18n.t('turple.cli.ask_user_for_project.name_prompt')).value
-      end
-
       project_path = nil
       until project_path.is_a?(Pathname) && !project_path.to_s.empty?
         project_path = Pathname.new CliMiami::A.sk(I18n.t('turple.cli.ask_user_for_project.path_prompt')).value
       end
 
-      # make sure project directory exists
-      FileUtils.mkdir_p project_path unless project_path.exist?
-
       # load Turplefile if it exists
-      Turple::Core.load_turplefile project_path
+      Turple::Core.load_turplefile project_path if project_path.exist?
 
+      # ask user for project name if not set
+      project_name = Turple::Core.settings[:project][:name]
+      until !project_name.nil? && !project_name.empty?
+        project_name = CliMiami::A.sk(I18n.t('turple.cli.ask_user_for_project.name_prompt')).value
+      end
+
+      # ask user for remaining data
       project_data = ask_user_for_data template.required_data, Turple::Core.settings[:project][:data]
 
       # initialize a new project

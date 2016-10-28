@@ -121,6 +121,30 @@ describe Turple::Core do
         @core.send :initialize, template: @template_instance, project: { name: :name, path: :path, data: :data }
       end
     end
+
+    context 'when project is passed as a string' do
+      it 'should expect it to be a path to an existing project directory' do
+        allow(Turple::Core).to receive(:settings).and_return({
+          project: {
+            name: 'Project Name',
+            path: './project_string',
+            data: {
+              foo: 'foo'
+            }
+          }
+        })
+
+        expect(Turple::Core).to receive(:load_turplefile).with('./project_string')
+        expect(Turple::Project).to receive(:new).with({
+          name: 'Project Name',
+          path: File.expand_path('./project_string'),
+          data: { foo: 'foo' },
+          template: @template_instance
+        })
+
+        @core.send :initialize, template: @template_instance, project: './project_string'
+      end
+    end
   end
 
   describe '.load_turplefile' do
