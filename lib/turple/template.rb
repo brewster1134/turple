@@ -123,7 +123,7 @@ end
 #   end
 #
 #   def get_missing_data
-#     allow(@template_instance).to receive(:data).and_return({
+#     allow(@template).to receive(:data).and_return({
 #       data_keys: {
 #         foo_key: :foo_var,
 #         bar_key: :bar_var,

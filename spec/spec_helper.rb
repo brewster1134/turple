@@ -7,10 +7,24 @@ I18n.load_path << File.expand_path(File.join('spec', 'fixtures', 'i18n.yml'))
 I18n.reload!
 I18n.locale = 'spec'
 
+# Helper Methods
+#
+module Helpers
+  # Create a new class instance without calling initialize
+  # @param klass [Class] A valid Turple class name
+  # @return [klass instance] A new allocated instance of the given class
+  #
+  def allocate klass
+    "Turple::#{klass.to_s.classify}".constantize.allocate
+  end
+end
+
 # See http://rubydoc.info/gems/rspec-core/RSpec/Core/Configuration
 RSpec.configure do |config|
-# The settings below are suggested to provide a good initial experience
-# with RSpec, but feel free to customize to your heart's content.
+  config.include Helpers
+
+  # The settings below are suggested to provide a good initial experience
+  # with RSpec, but feel free to customize to your heart's content.
 
   # These two settings work together to allow you to limit a spec run
   # to individual examples or groups you care about by tagging them with

@@ -19,8 +19,8 @@ end
 #
 #   context 'when a source is passed' do
 #     before do
-#       allow_any_instance_of(Turple::Template).to receive(:valid_path?).and_return true
-#       allow_any_instance_of(Turple::Template).to receive(:scan_for_data).and_return({ :foo => 'bar' })
+#       allow_any_of(Turple::Template).to receive(:valid_path?).and_return true
+#       allow_any_of(Turple::Template).to receive(:scan_for_data).and_return({ :foo => 'bar' })
 #       allow(Turple::Source).to receive(:find_template_path)
 #       allow(Turple::Source).to receive(:new).and_return(OpenStruct.new({
 #         :template_paths => {
@@ -33,8 +33,8 @@ end
 #     end
 #
 #     after do
-#       allow_any_instance_of(Turple::Template).to receive(:valid_path?).and_call_original
-#       allow_any_instance_of(Turple::Template).to receive(:scan_for_data).and_call_original
+#       allow_any_of(Turple::Template).to receive(:valid_path?).and_call_original
+#       allow_any_of(Turple::Template).to receive(:scan_for_data).and_call_original
 #       allow(Turple::Source).to receive(:find_template_path).and_call_original
 #       allow(Turple::Source).to receive(:new).and_call_original
 #     end

@@ -2,12 +2,12 @@ require 'turple/cli'
 
 describe Turple::Cli do
   before do
-    @cli = Turple::Cli.new
-    @ask_instance = instance_double CliMiami::A
-    @project_instance = Turple::Project.allocate
-    @source_instance = Turple::Source.allocate
-    @template_instance = Turple::Template.allocate
-    allow(CliMiami::A).to receive(:sk).and_return @ask_instance
+    @cli = allocate :cli
+    @ask = CliMiami::A.allocate
+    @project = allocate :project
+    @source = allocate :source
+    @template = allocate :template
+    allow(CliMiami::A).to receive(:sk).and_return @ask
   end
 
   after do
@@ -25,21 +25,27 @@ describe Turple::Cli do
   #
   describe '#ate' do
     before do
+      @cli = allocate :cli
+      @project = allocate :project
+      @template = allocate :template
+
+      allow(Turple::Source).to receive(:new)
       allow(Turple::Core).to receive :load_turplefile
       allow(Turple::Core).to receive :new
-      allow(@cli).to receive(:ask_user_for_source_or_template).and_return @template_instance
-      allow(@cli).to receive(:ask_user_for_project).and_return @project_instance
+      allow(@cli).to receive(:ask_user_for_source_or_template).and_return @template
+      allow(@cli).to receive(:ask_user_for_project).and_return @project
 
       @cli.ate
     end
 
-    it 'should prompt user for action and start Turple' do
+    it 'should initialize in the right order' do
+      expect(Turple::Source).to have_received(:new).with('brewster1134/turple-templates').ordered
       expect(Turple::Core).to have_received(:load_turplefile).with(ENV['HOME']).ordered
       expect(@cli).to have_received(:ask_user_for_source_or_template).ordered
-      expect(@cli).to have_received(:ask_user_for_project).with(@template_instance).ordered
+      expect(@cli).to have_received(:ask_user_for_project).with(@template).ordered
       expect(Turple::Core).to have_received(:new).with({
-        template: @template_instance,
-        project: @project_instance
+        template: @template,
+        project: @project
       }).ordered
     end
   end
@@ -48,31 +54,35 @@ describe Turple::Cli do
   #
   describe '#ask_user_for_source_or_template' do
     before do
+      @cli = allocate :cli
+      @source = allocate :source
+      @template = allocate :template
+
       # simulate adding a source by returning 1 source on the 1st call, and 2 sources on the 2nd call
       allow(Turple::Source).to receive(:all).and_return [
-        @source_instance
+        @source
       ], [
-        @source_instance,
-        @source_instance
+        @source,
+        @source
       ]
 
-      allow(@source_instance).to receive(:name).and_return(
+      allow(@source).to receive(:name).and_return(
         'Source 1',
         'Source 1',
         'Source 2'
       )
 
-      allow(@source_instance).to receive(:templates).and_return [
-        @template_instance,
-        @template_instance
+      allow(@source).to receive(:templates).and_return [
+        @template,
+        @template
       ], [
-        @template_instance,
-        @template_instance
+        @template,
+        @template
       ], [
-        @template_instance
+        @template
       ]
 
-      allow(@template_instance).to receive(:name).and_return(
+      allow(@template).to receive(:name).and_return(
         'Source 1 Template 1',
         'Source 1 Template 2',
         'Source 1 Template 1',
@@ -82,7 +92,7 @@ describe Turple::Cli do
 
       @call_order = []
 
-      allow(@ask_instance).to receive(:value) do
+      allow(@ask).to receive(:value) do
         @call_order << :ask_user
       end.and_return [:source], [:template]
 
@@ -96,12 +106,12 @@ describe Turple::Cli do
 
       allow(@cli).to receive(:ask_user_for_template) do
         @call_order << :ask_user_for_template
-      end.and_return @template_instance
+      end.and_return @template
 
       @template = @cli.ask_user_for_source_or_template
     end
 
-    it 'should allow user to add a new sources and finish with choosing a template' do
+    it 'should prompt user in the right order' do
       expect(@call_order).to eq [
         'Source 1',
         'Source 1 Template 1',
@@ -119,7 +129,7 @@ describe Turple::Cli do
     end
 
     it 'should return a Turple Template' do
-      expect(@template).to eq @template_instance
+      expect(@template).to eq @template
     end
   end
 
@@ -129,34 +139,34 @@ describe Turple::Cli do
         @call_order = []
         allow(Turple::Source).to receive(:new) do |arg|
           @call_order << arg
-        end.and_return nil, @source_instance
+        end.and_return nil, @source
 
-        allow(@ask_instance).to receive(:value).and_return 'invalid_source', 'valid_source'
+        allow(@ask).to receive(:value).and_return 'invalid_source', 'valid_source'
 
         @source = @cli.ask_user_for_source
       end
 
       it 'should prompt until a valid source is created' do
-        expect(@ask_instance).to have_received(:value).twice
+        expect(@ask).to have_received(:value).twice
         expect(Turple::Source).to have_received(:new).twice
         expect(@call_order).to eq [ 'invalid_source', 'valid_source' ]
       end
 
       it 'should return a Turple Source' do
-        expect(@source).to eq @source_instance
+        expect(@source).to eq @source
       end
     end
 
     context 'when exiting' do
       before do
-        allow(@ask_instance).to receive(:value).and_return ''
+        allow(@ask).to receive(:value).and_return ''
         allow(Turple::Source).to receive(:new)
 
         @source = @cli.ask_user_for_source
       end
 
       it 'should allow not entering a source' do
-        expect(@ask_instance).to have_received(:value)
+        expect(@ask).to have_received(:value)
         expect(Turple::Source).to_not have_received(:new)
       end
 
@@ -173,11 +183,11 @@ describe Turple::Cli do
         @call_order << arg
       end
 
-      allow(@ask_instance).to receive(:value).and_return ['1']
-      allow(@source_instance).to receive(:templates).and_return [@template_instance]
-      allow(@source_instance).to receive(:name).and_return 'Source Name'
-      allow(@template_instance).to receive(:name).and_return 'Template Name'
-      allow(Turple::Source).to receive(:all).and_return [@source_instance]
+      allow(@ask).to receive(:value).and_return ['1']
+      allow(@source).to receive(:templates).and_return [@template]
+      allow(@source).to receive(:name).and_return 'Source Name'
+      allow(@template).to receive(:name).and_return 'Template Name'
+      allow(Turple::Source).to receive(:all).and_return [@source]
 
       @template = @cli.ask_user_for_template
     end
@@ -192,21 +202,21 @@ describe Turple::Cli do
     end
 
     it 'should return a Turple Template' do
-      expect(@template).to eq @template_instance
+      expect(@template).to eq @template
     end
   end
 
   describe '#ask_user_for_project' do
     before do
       @project_path = Pathname.new './project/path'
-      allow(@ask_instance).to receive(:value).and_return '', './project/path', '', 'Project Name'
-      allow(@template_instance).to receive(:required_data).and_return({ required: true })
+      allow(@ask).to receive(:value).and_return '', './project/path', '', 'Project Name'
+      allow(@template).to receive(:required_data).and_return({ required: true })
       allow(@cli).to receive(:ask_user_for_data).and_return({ data: true })
       allow(Turple::Core).to receive(:load_turplefile)
       allow(Turple::Core).to receive(:settings).and_return({ project: { data: { existing: true }}})
-      allow(Turple::Project).to receive(:new).and_return @project_instance
+      allow(Turple::Project).to receive(:new).and_return @project
 
-      @project = @cli.ask_user_for_project @template_instance
+      @project = @cli.ask_user_for_project @template
     end
 
     it 'shoud prompt for project meta data' do
@@ -216,12 +226,12 @@ describe Turple::Cli do
         name: 'Project Name',
         path: @project_path,
         data: { data: true },
-        template: @template_instance
+        template: @template
       }).ordered
     end
 
     it 'should return a Turple Project' do
-      expect(@project).to eq @project_instance
+      expect(@project).to eq @project
     end
   end
 
@@ -276,7 +286,7 @@ describe Turple::Cli do
 
   describe '#ask_user_for_data_value' do
     before do
-      allow(@ask_instance).to receive(:value).and_return '', 'John'
+      allow(@ask).to receive(:value).and_return '', 'John'
 
       @value = @cli.ask_user_for_data_value 'Name'
     end

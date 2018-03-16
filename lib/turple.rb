@@ -4,9 +4,9 @@ require 'active_support/core_ext/hash/keys'
 require 'active_support/core_ext/object/deep_dup'
 require 'active_support/inflector'
 require 'i18n'
-# require 'recursive-open-struct'
+require 'recursive-open-struct'
 require 'sourcerer_'
-# require 'tmpdir'
+require 'tmpdir'
 require 'yaml'
 
 # I18N
@@ -34,14 +34,20 @@ class Hash
   # deep to_s with formatting
   def to_s namespace = []
     self.inject([]) do |array, (k, v)|
-      if v.is_a? Hash
-        array << v.to_s([k])
+      tmp_namespace = namespace.dup << k
+      
+      # add to array
+      array << if v.is_a? Hash
+        
+        # if a nested hash, call to_s with the parent key as a namespace
+        v.to_s(tmp_namespace)
       else
-        namespace << k
-        key = namespace.join('.')
-        array << "#{key}: #{v}"
+        
+        # stringify key and value
+        key = tmp_namespace.join('.')
+        "#{key}: #{v}"
       end
-      array.flatten
+
     end.join(', ')
   end
 end
@@ -50,6 +56,7 @@ end
 #
 module Turple
   def self.ate args
+    Turple::Source.new 'brewster1134/turple-templates'
     Turple::Core.load_turplefile ENV['HOME']
     Turple::Core.new args
   end

@@ -2,32 +2,67 @@
 # Turple::Source
 #
 class Turple::Source
-  attr_reader :location
+  @@sources = []
+  
+  attr_reader :location, :templates
 
+  # Creates a Turple Source
+  # * download/copy the source to a tmp dir
+  # * initialize and register all templates
+  # 
   def initialize location
+    @location = location
+    @source = Sourcerer.new @location, File.join(Dir.mktmpdir, Time.now.to_i.to_s)
+    @settings = Turple::Core.load_turplefile @source.path
+    
+    @templates = []
+    add_templates @source
+    
+    # register source to be accessed through Turple::Source.all
+    @@sources << self
   end
-
+  
   def name
+    @settings[:name]
   end
 
-  def templates
-  end
-
-  # @param template [String]  A template key, or name
+  # @param template_name [String, Symbol] A template name
+  # @return [Turple::Template] The first template found that matches the template_name arg
+  # @raise [Turple::Error] If no template is found
   #
-  def find_template template
+  def find_template template_name
+    @templates.find{ |t| t.name == template_name.to_s } || raise(Turple::Error.new('source.find_template.template_not_found', template: template_name))
   end
 
+  def add_templates source
+    source.files('*/').each do |template_path|
+      @templates << Turple::Template.new(template_path)
+    end    
+  end
+  
+  # Register a new source instance
+  # @param source [Turple::Source] A new source instance
+  # @return [Array] Array of all the initialized sources
+  # 
+  def add_source source
+    @@sources << self
+  end
+
+  # @return [Array] Array of all the initialized sources
+  # 
   def self.all
+    @@sources
   end
 
-  # @param source [String]  A source key, name, or location
+  # @param source [String, Symbol] A source name or location
+  # @return [Turple::Source] The first source found that matches the source arg
   #
   def self.find source
+    all.find{ |s| s.name == source.to_s || s.location == source.to_s }
   end
 end
 
-Turple::Source.new 'brewster1134/turple-templates'
+
 
 # #
 # # Turple::Source

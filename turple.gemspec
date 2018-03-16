@@ -8,12 +8,11 @@ Gem::Specification.new do |s|
   s.date        = Date.today.to_s
   s.email       = 'brewster1134@gmail.com'
   s.executables = ['turple']
-  s.files       = Dir['{bin,i18n,lib}/**/*', 'README.md']
+  s.files       = Dir['{bin,i18n,lib}/**/*', 'CHANGELOG.md', 'README.md']
   s.homepage    = 'https://github.com/brewster1134/turple'
   s.license     = 'WTFPL'
   s.name        = 'turple'
   s.summary     = Turple::SUMMARY
-  s.test_files  = Dir['spec/**/*']
   s.version     = Turple::VERSION
 
   s.required_ruby_version = Gem::Requirement.new '>= 2.0.0p247'

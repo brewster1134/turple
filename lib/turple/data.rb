@@ -1,10 +1,10 @@
-require 'cli_miami'
-require 'recursive-open-struct'
-
+#
+# Populates a data object with sufficient data for a given template
+#
 class Turple::Data
-  def data; RecursiveOpenStruct.new @provided_data; end
+  private
 
-private
+  def data; RecursiveOpenStruct.new @provided_data; end
 
   def initialize required_data, provided_data, data_map
     @provided_data = provided_data
@@ -14,12 +14,12 @@ private
 
     # if there is missing data, prompt user to enter it in
     unless missing_data.empty?
-      S.ay 'There is some missing data. You will be prompted to enter each value.', :color => :white, :bgcolor => :blue
+      CliMiami::S.ay 'There is some missing data. You will be prompted to enter each value.', :color => :white, :bgcolor => :blue
       prompt_for_data missing_data
     end
 
-    # update turpleobject with complete data
-    Turple.turpleobject = { :data => @provided_data }
+    # update settings with complete data
+    Turple.settings = { :data => @provided_data }
   end
 
   # populate missing data map values to match required data
@@ -106,7 +106,7 @@ private
         missing_data[key] = prompt_for_data_keys value
       else
         value = value.join(' | ') if value.is_a? Array
-        A.sk value, :prompt do |response|
+        CliMiami::A.sk value, :turple_prompt do |response|
           missing_data[key] = response
         end
       end

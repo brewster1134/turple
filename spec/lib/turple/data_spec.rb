@@ -1,59 +1,61 @@
-describe Turple::Data do
-  before do
-    values = ['Required Mapped', 'Required']
-    allow(A).to receive(:sk) do |&block|
-      block.call values.shift
-    end
-
-    # LEGEND
-    # Required, Provided, Mapped
-
-    required_data = {
-      :rpm => true,
-      :rp => true,
-      :rm => true,
-      :r => true
-    }
-
-    provided_data = {
-      :rpm => 'Required Provided Mapped',
-      :rp => 'Required Provided'
-    }
-
-    data_map = {
-      :rpm => 'What is Required Provided Mapped?',
-      :rm => 'What is Required Mapped?'
-    }
-
-    @data = Turple::Data.new required_data, provided_data, data_map
-  end
-
-  after do
-    allow(A).to receive(:sk).and_call_original
-  end
-
-  it 'should return all required data' do
-    expect(@data.data.to_hash).to eq({
-      :rpm => 'Required Provided Mapped',
-      :rp => 'Required Provided',
-      :rm => 'Required Mapped',
-      :r => 'Required'
-    })
-  end
-
-  it 'should prompt for missing data' do
-    expect(A).to have_received(:sk).twice
-    expect(A).to have_received(:sk).with 'What is Required Mapped?', anything
-    expect(A).to have_received(:sk).with 'r', anything
-  end
-
-  describe '#get_missing_data' do
-    it 'should remove empty hashes' do
-      required_data = { :foo => { :bar => true }}
-      provided_data = { :foo => { :bar => 'foobar' }}
-      missing_data = @data.send :get_missing_data, required_data, provided_data, {}
-
-      expect(missing_data).to eq({})
-    end
-  end
-end
+# describe Turple::Data do
+#   describe '.initialize' do
+#     before do
+#       user_values = ['Required Mapped', 'Required']
+#       allow(A).to receive(:sk) do |&block|
+#         block.call user_values.shift
+#       end
+#
+#       # LEGEND
+#       # Required, Provided, Mapped
+#
+#       required_data = {
+#         :rpm => true,
+#         :rp => true,
+#         :rm => true,
+#         :r => true
+#       }
+#
+#       provided_data = {
+#         :rpm => 'Required Provided Mapped',
+#         :rp => 'Required Provided'
+#       }
+#
+#       data_map = {
+#         :rpm => 'What is Required Provided Mapped?',
+#         :rm => 'What is Required Mapped?'
+#       }
+#
+#       @data = Turple::Data.new required_data, provided_data, data_map
+#     end
+#
+#     after do
+#       allow(A).to receive(:sk).and_call_original
+#     end
+#
+#     it 'should return all required data' do
+#       expect(@data.data.to_hash).to eq({
+#         :rpm => 'Required Provided Mapped',
+#         :rp => 'Required Provided',
+#         :rm => 'Required Mapped',
+#         :r => 'Required'
+#         })
+#     end
+#
+#     it 'should prompt for missing data' do
+#       expect(A).to have_received(:sk).twice
+#       expect(A).to have_received(:sk).with 'What is Required Mapped?' #, anything
+#       expect(A).to have_received(:sk).with 'r' #, anything
+#     end
+#   end
+#
+#   describe '#get_missing_data' do
+#     it 'should remove empty hashes' do
+#       required_data = { :foo => { :bar => true }}
+#       provided_data = { :foo => { :bar => 'foobar' }}
+#       missing_data = @data.send :get_missing_data, required_data, provided_data, {}
+#
+#       expect(missing_data).to eq({})
+#     end
+#   end
+# end

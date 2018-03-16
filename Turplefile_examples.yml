@@ -1,0 +1,100 @@
+# home directory Turplefile
+# user defaults
+#
+# * author information
+# * default sources to check
+# * settings for creating templates
+#
+home_directory_turplefile:
+  author:
+    name: Jane Doe
+    email: 'janedoe@email.com'
+  sources:
+    - source_location
+  settings:
+    interactive?: false
+    cli_line_length: 80
+    destination: '~/Documents/turple_project'
+    path_regex: '\[([A-Z_\.]+)\]'
+    path_separator: '.'
+    content_file_ext: 'turple'
+    content_regex: '<>([a-z_\.]+)<>'
+    content_separator: '.'
+
+# source directory Turplefile
+# common template settings
+#
+# * ?
+
+# template directory Turplefile
+# template settings
+#
+# * template name
+# * data map - generated
+# * settings required for the template
+#
+template_directory_turplefile:
+  name: javascript_react
+  description: description of javascript_react
+  data_map:
+    en:
+      foo: description of foo
+      nested:
+        bar: description of nested.bar
+  settings:
+    path_regex: '\[([A-Z_\.]+)\]'
+    path_separator: '.'
+    content_file_ext: 'turple'
+    content_regex: '<>([a-z_\.]+)<>'
+    content_separator: '.'
+
+# project directory Turplefile (2 scenarios)
+# - before interpolation
+#   - interactive mode
+#     * can contain partial pre-populated data. the user will only be prompted for any missing data
+#   - ruby mode
+#     * between this data, and data passed into Turple.ate, data set must be complete
+#
+# - after interpolation
+#   - generated after successful interpolation
+#     * author details - generated from:
+#       * home directory Turplefile
+#       * user entered (interactive mode)
+#       * passed as argument (Turple.ate)
+#     * creation date - generated
+#     * project url - generated from:
+#       * user entered (interactive mode)
+#       * passed as argument (Turple.ate)
+#     * template
+#       * name (from template Turplefile)
+#       * source - generated
+#       * data - generated from:
+#         * destination Turplefile
+#       * data_map - generated
+#       * settings - (from template Turplefile)
+#
+project_directory_turplefile:
+  author:
+    name: Jane Doe
+    email: 'janedoe@email.com'
+  created_on: 1980-09-09
+  url: github.com/jane_doe/my_javascript_react_project
+  template:
+    name: javascript_react
+    source:
+      source_name: source_location
+    data:
+      foo: value for foo
+      nested:
+        bar: value for nested.bar
+    data_map:
+      en:
+        foo: description of foo
+        nested:
+          bar: description of nested.bar
+    settings:
+      path_regex: '\[([A-Z_\.]+)\]'
+      path_separator: '.'
+      content_file_ext: 'turple'
+      content_regex: '<>([a-z_\.]+)<>'
+      content_separator: '.'

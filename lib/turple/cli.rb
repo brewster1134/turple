@@ -1,7 +1,7 @@
 #
 # Turple::Cli
 # Defines command line options and handles collecting information from the user
-# @see  help Run `turple help` from the command line
+# @see help Run `turple help` from the command line
 #
 # Dependencies
 require 'i18n'
@@ -12,6 +12,7 @@ class Turple::Cli < Thor
   desc 'ate', I18n.t('turple.cli.ate.desc')
   # @!visibility private
   def ate
+    Turple::Source.new 'brewster1134/turple-templates'
     Turple::Core.load_turplefile ENV['HOME']
 
     # Request information from user
@@ -31,7 +32,7 @@ class Turple::Cli < Thor
 
   desc 'help [COMMAND]', I18n.t('turple.cli.help.desc')
   # @!visibility private
-  def help command = nil;
+  def help command = nil
     super
   end
 
